@@ -46,7 +46,7 @@ public class CustomResourceDefinitionsManager {
         boolean resourceNamespaced = true;
         String namespace = null;
         if (args.length > 0) {
-            if ("--cluster".equals(args[0])) {
+            if ("--cluster".equals(args[0])) { // TODO remove this and make into instantiatable methods
                 resourceNamespaced = false;
             } else {
                 namespace = args[0];
