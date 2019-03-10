@@ -22,10 +22,16 @@ public class Operator {
 
     public static void main(String[] args) {
         Operator operator = new Operator();
-        operator.listNodes();
-        System.out.println("");
-        System.out.println("");
-        operator.listPods();
+        CustomResourceDefinitionsManager crdManager =
+                new CustomResourceDefinitionsManager(operator.kubernetesClient, null);
+        crdManager.listExistingSiddhiApps();
+        crdManager.createOrUpdateSiddhiApp("sample1", "<Sample 1 Content>");
+
+        System.out.println("SUCCESS");
+//        operator.listNodes();
+//        System.out.println("");
+//        System.out.println("");
+//        operator.listPods();
     }
 
     private void listNodes() {
