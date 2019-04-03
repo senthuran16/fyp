@@ -24,15 +24,15 @@ public class MetricsPublisher {
 
     private static String projectId;
     private static ProjectName projectName;
-    private static OkHttpClient okHttpClient;
+    private static OkHttpClient okHttpClient = new OkHttpClient();
     private static MetricServiceClient metricServiceClient;
 
-
-    public MetricsPublisher(String projectId) throws IOException {
-        projectId = projectId;
-        projectName = ProjectName.of(projectId);
-        metricServiceClient = MetricServiceClient.create();
-        okHttpClient = new OkHttpClient();
+    static {
+        try {
+            metricServiceClient = MetricServiceClient.create();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void publishAllMetrics() {
@@ -44,6 +44,13 @@ public class MetricsPublisher {
         for (Map.Entry<String, Double> childAppAverageMetrics : childAppWiseAverageMetrics.entrySet()) {
             publishMetrics(childAppAverageMetrics.getKey(), childAppAverageMetrics.getValue());
         }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        projectId = "hale-post-233718";
+        projectName = ProjectName.of(projectId);
+        MetricsPublisher.publishMetrics("test-app1", 130); // TODO frequency prob. Send as batches?
+
     }
 
     private static void publishMetrics(String childSiddhiAppName, double value) {
