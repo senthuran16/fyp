@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Has functions to communicate with the Kubernetes cluster, and performs scheduling, spawning and scaling for pods
+ * Contains methods to communicate with the Kubernetes cluster, and performs scheduling, spawning and scaling for pods
  */
 public class DeploymentManager {
     private static final String WORKERS_NAMESPACE = "wso2"; // TODO create this namespace programmatically first

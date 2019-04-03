@@ -13,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contains methods for querying and publishing worker pod metrics for auto scaling purposes
+ */
 public class MetricsPublisher {
     private static final String METRIC_TYPE_PREFIX = "custom.googleapis.com/worker_pod_metrics/";
     private static final String MONITORED_REESOURCE_TYPE = "global";

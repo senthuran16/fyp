@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class gives the details of the deployed siddhi application's details.
+ * Handles Siddhi app deployment in worker pods
  */
 public class SiddhiAppDeployer {
     static OkHttpClient client = new OkHttpClient();
