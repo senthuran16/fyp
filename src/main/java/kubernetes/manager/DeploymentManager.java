@@ -55,20 +55,20 @@ public class DeploymentManager {
         // Create Service
         Service service = kubernetesClient.services()
                 .inNamespace(namespace)
-                .create(constructWorkerService(childSiddhiAppName));
+                .create(buildWorkerService(childSiddhiAppName));
         System.out.println("Created Service for child Siddhi app: " + childSiddhiAppName); // TODO log
 
         // Create Deployment
         Deployment deployment = kubernetesClient.apps().deployments()
                 .inNamespace(namespace)
-                .create(constructWorkerDeployment(childSiddhiAppName));
+                .create(buildWorkerDeployment(childSiddhiAppName));
         System.out.println("Created Deployment for child Siddhi app: " + childSiddhiAppName); // TODO log
 
         // Create Horizontal Pod Autoscaler // TODO uncomment HPA. On hold for now
 //        HorizontalPodAutoscaler horizontalPodAutoscaler = kubernetesClient.autoscaling().horizontalPodAutoscalers()
 //                .inNamespace(namespace)
 //                .create(
-//                        constructHorizontalPodAutoscaler(
+//                        buildHorizontalPodAutoscaler(
 //                                constructHorizontalPodAutoscalerName(deploymentName), namespace, deploymentName));
 //        System.out.println("Created Horizontal Pod Autoscaler: " + horizontalPodAutoscaler); // TODO log
     }
@@ -164,7 +164,7 @@ public class DeploymentManager {
         return labels;
     }
 
-    private Service constructWorkerService(String childSiddhiAppName) throws FileNotFoundException {
+    private Service buildWorkerService(String childSiddhiAppName) throws FileNotFoundException {
         return new ServiceBuilder()
                 .withApiVersion("v1")
                 .withKind("Service")
@@ -181,7 +181,7 @@ public class DeploymentManager {
                 // type
                 .withType("LoadBalancer")
                 // ports
-                .withPorts(constructWorkerServicePorts())
+                .withPorts(buildWorkerServicePorts())
                 // selector
                 .withSelector(constructLabels(childSiddhiAppName))
                 .endSpec()
@@ -190,7 +190,7 @@ public class DeploymentManager {
                 .build();
     }
 
-    private List<ServicePort> constructWorkerServicePorts() {
+    private List<ServicePort> buildWorkerServicePorts() {
         List<ServicePort> servicePorts = new ArrayList<>();
         servicePorts.add(
                 new ServicePortBuilder()
@@ -225,7 +225,7 @@ public class DeploymentManager {
         return servicePorts;
     }
 
-    private Deployment constructWorkerDeployment(String childSiddhiAppName) throws FileNotFoundException {
+    private Deployment buildWorkerDeployment(String childSiddhiAppName) throws FileNotFoundException {
         return new DeploymentBuilder()
                 .withApiVersion("apps/v1")
                 .withKind("Deployment")
@@ -260,7 +260,7 @@ public class DeploymentManager {
                 .endMetadata()
                 // spec
                 .withNewSpec()
-                .withContainers(constructWorkerDeploymentContainer(childSiddhiAppName))
+                .withContainers(buildWorkerDeploymentContainer(childSiddhiAppName))
                 .endSpec()
                 .endTemplate()
                 // template [END]
@@ -270,7 +270,7 @@ public class DeploymentManager {
         .build();
     }
 
-    private Container constructWorkerDeploymentContainer(String childSiddhiAppName) {
+    private Container buildWorkerDeploymentContainer(String childSiddhiAppName) {
         return new ContainerBuilder()
                 .withImage("senthuran16/wso2sp-worker:4.3.0")
                 .withName(childSiddhiAppName)
@@ -311,9 +311,9 @@ public class DeploymentManager {
                 .build();
     }
 
-    private HorizontalPodAutoscaler constructHorizontalPodAutoscaler(String name,
-                                                                     String namespace,
-                                                                     String deploymentName) {
+    private HorizontalPodAutoscaler buildHorizontalPodAutoscaler(String name,
+                                                                 String namespace,
+                                                                 String deploymentName) {
         return new HorizontalPodAutoscalerBuilder()
                 .withNewMetadata().withName(name).withNamespace(namespace).endMetadata()
                 .withNewSpec()
@@ -331,38 +331,6 @@ public class DeploymentManager {
                         .withTargetAverageUtilization(50)
                         .endResource()
                         .build())
-                .endSpec()
-                .build();
-    }
-
-    // TODO remove if file template is going to be used
-    private Deployment getWorkerDeployment(String name) {
-        return new DeploymentBuilder()
-                .withNewMetadata()
-                .withName(name)
-                .endMetadata()
-                .withNewSpec()
-//                .withReplicas(1)
-                .withNewTemplate()
-                .withNewMetadata()
-                .addToLabels("app", name)
-                .endMetadata()
-                .withNewSpec()
-
-                .addNewContainer()
-                .withName(name)
-                .withImage("wso2/wso2sp-worker")
-                .withCommand("sh", "-c", "sleep 40 && /home/wso2carbon/init.sh")
-                .addNewPort()
-                .withContainerPort(80)
-                .endPort()
-                .endContainer()
-
-                .endSpec()
-                .endTemplate()
-                .withNewSelector()
-                .addToMatchLabels("app", name)
-                .endSelector()
                 .endSpec()
                 .build();
     }
