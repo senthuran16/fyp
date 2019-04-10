@@ -7,7 +7,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import kubernetes.manager.components.helpers.ChildSiddhiAppsHandler;
 import kubernetes.manager.components.DeploymentManager;
 import kubernetes.manager.exception.KubernetesDeploymentManagerException;
-import kubernetes.manager.components.MetricsPublisher;
+import kubernetes.manager.components.MetricsManager;
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 import kubernetes.manager.models.DeploymentInfo;
 import kubernetes.manager.models.ManagerServiceInfo;
@@ -129,7 +129,7 @@ public class Operator extends TimerTask {
     }
 
     public void publishWorkerPodMetrics() throws IOException, InterruptedException {
-        MetricsPublisher.publishWorkerPodMetrics(managerServiceInfo, knownWorkerPods);
+        MetricsManager.publishWorkerPodMetrics(managerServiceInfo, knownWorkerPods);
     }
 
     public void updateSiddhiAppDeployments() throws IOException {

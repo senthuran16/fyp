@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Contains methods for querying and publishing worker pod metrics for auto scaling purposes
+ * Contains methods for querying and publishing worker pod metrics for auto scaling purpose
  */
-public class MetricsPublisher {
+public class MetricsManager {
     private static final String METRIC_TYPE_PREFIX = "custom.googleapis.com/";
     private static final String METRIC_LABEL_KEY_SIDDHI_APP = "siddhi_app";
     private static final String MONITORED_RESOURCE_TYPE = "gke_container";
@@ -95,7 +95,7 @@ public class MetricsPublisher {
     private static void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {
-            MetricsPublisher.publishWorkerPodMetrics(workerPodMetrics);
+            MetricsManager.publishWorkerPodMetrics(workerPodMetrics);
             Thread.sleep(5000);
         }
     }
