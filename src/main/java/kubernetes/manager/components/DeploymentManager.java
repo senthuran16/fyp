@@ -1,18 +1,16 @@
-package kubernetes.manager;
+package kubernetes.manager.components;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import kubernetes.manager.components.helpers.SiddhiAppDeployer;
 import kubernetes.manager.exception.KubernetesDeploymentManagerException;
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 import kubernetes.manager.models.DeploymentInfo;
 import kubernetes.manager.models.ManagerServiceInfo;
 import kubernetes.manager.models.WorkerPodInfo;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -154,18 +152,6 @@ public class DeploymentManager {
             updatedWorkerPodInfos.add(passedDeployment.getWorkerPodInfo());
         }
         this.updatedWorkerPods = updatedWorkerPodInfos;
-    }
-
-    private String getChildSiddhiAppName(WorkerPodInfo workerPodInfo) {
-        // TODO extract the Siddhi app name from Worker pod uuid
-        String[] splitName = workerPodInfo.getName().split("-");
-        return splitName[0] + splitName[1] + splitName[2] + splitName[3];
-        // TODO might maintain parent Siddhi app name also. Otherwise impossible to extract siddhi app name from pod
-    }
-
-    private HasMetadata constructResourceFromFile(String absoluteFilePath) throws FileNotFoundException {
-        List<HasMetadata> resources = kubernetesClient.load(new FileInputStream(absoluteFilePath)).get();
-        return resources.get(0);
     }
 
     private Map<String, String> constructLabels(String childSiddhiAppName) {

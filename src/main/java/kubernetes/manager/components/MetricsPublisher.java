@@ -1,15 +1,11 @@
-package kubernetes.manager.metrics;
+package kubernetes.manager.components;
 
 import com.google.api.Metric;
-import com.google.api.MetricDescriptor;
 import com.google.api.MonitoredResource;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.monitoring.v3.*;
 import com.google.protobuf.util.Timestamps;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import kubernetes.manager.ManagerHTTPClient;
+import kubernetes.manager.components.helpers.ManagerHTTPClient;
 import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.models.ManagerServiceInfo;
 import kubernetes.manager.models.WorkerPodInfo;
@@ -25,16 +21,18 @@ import java.util.Map;
 /**
  * Contains methods for querying and publishing worker pod metrics for auto scaling purposes
  */
-/*
-TODO Publish per container (pod), not per deployment.
-See https://cloud.google.com/kubernetes-engine/docs/tutorials/custom-metrics-autoscaling
-And modify
- */
 public class MetricsPublisher {
     private static final String METRIC_TYPE_PREFIX = "custom.googleapis.com/";
-    private static final String MONITORED_RESOURCE_TYPE = "gke_container";
     private static final String METRIC_LABEL_KEY_SIDDHI_APP = "siddhi_app";
+    private static final String MONITORED_RESOURCE_TYPE = "gke_container";
+
     private static final String RESOURCE_LABEL_KEY_PROJECT_ID = "project_id";
+    private static final String RESOURCE_LABEL_KEY_POD_ID = "pod_id";
+    private static final String RESOURCE_LABEL_KEY_CONTAINER_NAME = "container_name";
+    private static final String RESOURCE_LABEL_KEY_ZONE = "zone";
+    private static final String RESOURCE_LABEL_KEY_CLUSTER_NAME = "cluster_name";
+    private static final String RESOURCE_LABEL_KEY_NAMESPACE_ID = "namespace_id";
+    private static final String RESOURCE_LABEL_KEY_INSTANCE_ID = "instance_id";
 
     private static String projectId;
     private static ProjectName projectName;
@@ -49,29 +47,6 @@ public class MetricsPublisher {
         }
     }
 
-    public static void createMetricDescriptor(String type) throws IOException {
-        // [START monitoring_create_metric]
-        // Your Google Cloud Platform project ID
-        String metricType = METRIC_TYPE_PREFIX + type;
-
-        final MetricServiceClient client = MetricServiceClient.create();
-        ProjectName name = ProjectName.of(projectId);
-
-        MetricDescriptor descriptor = MetricDescriptor.newBuilder()
-                .setType(metricType)
-                .setDescription("Testing the sample")
-                .setMetricKind(MetricDescriptor.MetricKind.GAUGE)
-                .setValueType(MetricDescriptor.ValueType.DOUBLE)
-                .build();
-
-        CreateMetricDescriptorRequest request = CreateMetricDescriptorRequest.newBuilder()
-                .setName(name.toString())
-                .setMetricDescriptor(descriptor)
-                .build();
-
-        client.createMetricDescriptor(request);
-    }
-
     public static void deleteMetricDescriptor(String name) throws IOException {
         final MetricServiceClient client = MetricServiceClient.create();
         MetricDescriptorName metricName = MetricDescriptorName.of(projectId, METRIC_TYPE_PREFIX + name);
@@ -83,29 +58,28 @@ public class MetricsPublisher {
         projectId = "savvy-factor-237205";
         projectName = ProjectName.of(projectId);
 //        createMetricDescriptor("foobar");
-//        deleteMetricDescriptor("test-app-group-1-1");
-//        deleteMetricDescriptor("test-app-group-2-1");
+        deleteMetricDescriptor("test-app-group-1-1");
+        deleteMetricDescriptor("test-app-group-2-1");
 
-        KubernetesClient kubernetesClient = new DefaultKubernetesClient();
-
-        while (true) {
-            List<Pod> pods = kubernetesClient.pods().inNamespace("default").list().getItems();
-            for (Pod pod : pods) {
-                if (pod.getMetadata().getLabels() != null && pod.getMetadata().getLabels().get("siddhi-app") != null) {
-                    publishWorkerPodMetrics(
-                            new WorkerPodMetrics(
-                                    new WorkerPodInfo(
-                                            pod.getMetadata().getName(),
-                                            pod.getStatus().getPodIP(),
-                                            pod.getMetadata().getLabels().get("siddhi-app"),
-//                                            "foo",
-                                            pod.getMetadata().getUid()),
-                                    80,
-                                    System.currentTimeMillis()));
-                    Thread.sleep(5000);
-                }
-            }
-        }
+//        KubernetesClient kubernetesClient = new DefaultKubernetesClient();
+//
+//        while (true) {
+//            List<Pod> pods = kubernetesClient.pods().inNamespace("default").list().getItems();
+//            for (Pod pod : pods) {
+//                if (pod.getMetadata().getLabels() != null && pod.getMetadata().getLabels().get("siddhi-app") != null) {
+//                    publishWorkerPodMetrics(
+//                            new WorkerPodMetrics(
+//                                    new WorkerPodInfo(
+//                                            pod.getMetadata().getName(),
+//                                            pod.getStatus().getPodIP(),
+//                                            pod.getMetadata().getLabels().get("siddhi-app"),
+//                                            pod.getMetadata().getUid()),
+//                                    80,
+//                                    System.currentTimeMillis()));
+//                    Thread.sleep(5000);
+//                }
+//            }
+//        }
     }
 
     public static void publishWorkerPodMetrics(ManagerServiceInfo managerServiceInfo, List<WorkerPodInfo> workerPods)
@@ -172,12 +146,12 @@ public class MetricsPublisher {
     private static MonitoredResource prepareMonitoredResourceDescriptor(String podId) { // TODO remove the parameters
         Map<String, String> resourceLabels = new HashMap<>();
         resourceLabels.put(RESOURCE_LABEL_KEY_PROJECT_ID, projectId);
-        resourceLabels.put("pod_id", podId);
-        resourceLabels.put("container_name", "");
-        resourceLabels.put("zone", "us-east1-b");
-        resourceLabels.put("cluster_name", "fyp-cluster");
-        resourceLabels.put("namespace_id", "default");
-        resourceLabels.put("instance_id", "");
+        resourceLabels.put(RESOURCE_LABEL_KEY_POD_ID, podId);
+        resourceLabels.put(RESOURCE_LABEL_KEY_CONTAINER_NAME, "");
+        resourceLabels.put(RESOURCE_LABEL_KEY_ZONE, ProjectConstants.GCLOUD_PROJECT_ZONE);
+        resourceLabels.put(RESOURCE_LABEL_KEY_CLUSTER_NAME, ProjectConstants.GCLOUD_PROJECT_CLUSTER_NAME);
+        resourceLabels.put(RESOURCE_LABEL_KEY_NAMESPACE_ID, "default");
+        resourceLabels.put(RESOURCE_LABEL_KEY_INSTANCE_ID, "");
 
         return MonitoredResource.newBuilder()
                 .setType(MONITORED_RESOURCE_TYPE)

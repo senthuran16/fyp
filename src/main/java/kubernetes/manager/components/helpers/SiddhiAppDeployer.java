@@ -1,18 +1,11 @@
-package kubernetes.manager;
+package kubernetes.manager.components.helpers;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import kubernetes.manager.models.ChildSiddhiAppInfo;
 import kubernetes.manager.models.DeploymentInfo;
 import kubernetes.manager.models.ManagerServiceInfo;
-import kubernetes.manager.models.WorkerPodInfo;
 import okhttp3.*;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handles Siddhi app deployment in worker pods

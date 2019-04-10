@@ -1,4 +1,4 @@
-package kubernetes.manager;
+package kubernetes.manager.components;
 
 import kubernetes.manager.models.NodeInfo;
 import kubernetes.manager.models.ResourceRequirementInfo;

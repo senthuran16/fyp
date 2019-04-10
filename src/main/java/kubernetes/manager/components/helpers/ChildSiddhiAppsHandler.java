@@ -1,4 +1,4 @@
-package kubernetes.manager;
+package kubernetes.manager.components.helpers;
 
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 

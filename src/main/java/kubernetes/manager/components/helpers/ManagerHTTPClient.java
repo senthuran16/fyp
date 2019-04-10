@@ -1,4 +1,4 @@
-package kubernetes.manager;
+package kubernetes.manager.components.helpers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;

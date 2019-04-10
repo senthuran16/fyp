@@ -1,5 +1,7 @@
 package kubernetes.manager.models;
 
+import kubernetes.manager.constants.ProjectConstants;
+
 /**
  * Contains information about the Manager Service, which is exposed as a Load Balancer
  */
@@ -10,8 +12,8 @@ public class ManagerServiceInfo {
 
     public ManagerServiceInfo(String ip) {
         this.ip = ip;
-        this.port = "9190";
-        this.protocol = "http";
+        this.port = ProjectConstants.MANAGER_SERVICE_PORT;
+        this.protocol = ProjectConstants.MANAGER_SERVICE_PROTOCOL;
     }
 
     public String getIp() {
