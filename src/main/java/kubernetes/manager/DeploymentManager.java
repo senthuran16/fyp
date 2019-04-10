@@ -3,10 +3,12 @@ package kubernetes.manager;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import kubernetes.manager.exception.KubernetesDeploymentManagerException;
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 import kubernetes.manager.models.DeploymentInfo;
+import kubernetes.manager.models.ManagerServiceInfo;
 import kubernetes.manager.models.WorkerPodInfo;
 
 import java.io.FileInputStream;
@@ -21,7 +23,7 @@ import java.util.Map;
  * Contains methods to communicate with the Kubernetes cluster, and performs scheduling, spawning and scaling for pods
  */
 public class DeploymentManager {
-    private static final String WORKERS_NAMESPACE = "wso2"; // TODO create this namespace programmatically first
+    private static final String WORKERS_NAMESPACE = "default"; // TODO create this namespace programmatically first
 
     // Labels
     private static final String SIDDHI_APP_LABEL_KEY = "siddhi-app";
@@ -41,16 +43,18 @@ public class DeploymentManager {
         childSiddhiApps = new HashMap<>();
     }
 
-    public void createChildSiddhiAppDeployments(List<ChildSiddhiAppInfo> childSiddhiAppInfos) throws IOException {
-        for (ChildSiddhiAppInfo childSiddhiAppInfo : childSiddhiAppInfos) {
-//            createScalableWorkerDeployment(childSiddhiAppInfo.getName(), WORKERS_NAMESPACE); // TODO uncomment
-            childSiddhiApps.put(childSiddhiAppInfo.getName(), childSiddhiAppInfo);
-        }
-        updateDeployments();
+    public List<WorkerPodInfo> getUpdatedWorkerPods() {
+        return updatedWorkerPods;
     }
 
-    private void createScalableWorkerDeployment(String childSiddhiAppName, String namespace)
-            throws FileNotFoundException {
+    public void createChildSiddhiAppDeployments(List<ChildSiddhiAppInfo> childSiddhiAppInfos) throws IOException {
+        for (ChildSiddhiAppInfo childSiddhiAppInfo : childSiddhiAppInfos) {
+            createScalableWorkerDeployment(childSiddhiAppInfo.getName(), WORKERS_NAMESPACE);
+//            childSiddhiApps.put(childSiddhiAppInfo.getName(), childSiddhiAppInfo); // TODO remove this
+        }
+    }
+
+    private void createScalableWorkerDeployment(String childSiddhiAppName, String namespace) {
         // TODO be sure about namespaces
         // Create Service
         Service service = kubernetesClient.services()
@@ -73,12 +77,20 @@ public class DeploymentManager {
 //        System.out.println("Created Horizontal Pod Autoscaler: " + horizontalPodAutoscaler); // TODO log
     }
 
-    public void updateDeployments() throws IOException { // TODO implement
+    public List<DeploymentInfo> updateSiddhiAppDeployments(ManagerServiceInfo managerServiceInfo,
+                                                           List<DeploymentInfo> siddhiAppDeployments)
+            throws IOException {
+        // TODO implementation in progress
+        return SiddhiAppDeployer.updateDeployments(managerServiceInfo, siddhiAppDeployments);
+    }
+
+    public void updateDeployments(ManagerServiceInfo managerServiceInfo) throws IOException { // TODO remove this and use above
         List<WorkerPodInfo> latestPods = getLatestPods();
         if (latestPods.size() > 0) {
             System.out.println(latestPods.size() + " new running pods were found"); // TODO log
             List<DeploymentInfo> siddhiAppDeployments = getSiddhiAppDeployments(latestPods);
-            List<DeploymentInfo> failedDeployments = SiddhiAppDeployer.updateDeployments(siddhiAppDeployments);
+            List<DeploymentInfo> failedDeployments =
+                    SiddhiAppDeployer.updateDeployments(managerServiceInfo, siddhiAppDeployments);
 
             // Set updated worker pods with passed deployments
             siddhiAppDeployments.removeAll(failedDeployments);
@@ -100,7 +112,7 @@ public class DeploymentManager {
         return latestPods;
     }
 
-    private List<WorkerPodInfo> getAllRunningWorkerPods() { // TODO make this private
+    private List<WorkerPodInfo> getAllRunningWorkerPods() {
         List<Pod> pods = kubernetesClient.pods().list().getItems();
         List<WorkerPodInfo> workerPodInfos = new ArrayList<>();
         for (Pod pod : pods) {
@@ -112,7 +124,8 @@ public class DeploymentManager {
                         new WorkerPodInfo(
                                 pod.getMetadata().getName(),
                                 pod.getStatus().getPodIP(),
-                                pod.getMetadata().getLabels().get(SIDDHI_APP_LABEL_KEY)));
+                                pod.getMetadata().getLabels().get(SIDDHI_APP_LABEL_KEY),
+                                pod.getMetadata().getUid()));
             }
         }
         return workerPodInfos;
@@ -164,7 +177,7 @@ public class DeploymentManager {
         return labels;
     }
 
-    private Service buildWorkerService(String childSiddhiAppName) throws FileNotFoundException {
+    private Service buildWorkerService(String childSiddhiAppName) {
         return new ServiceBuilder()
                 .withApiVersion("v1")
                 .withKind("Service")
@@ -225,7 +238,7 @@ public class DeploymentManager {
         return servicePorts;
     }
 
-    private Deployment buildWorkerDeployment(String childSiddhiAppName) throws FileNotFoundException {
+    private Deployment buildWorkerDeployment(String childSiddhiAppName) {
         return new DeploymentBuilder()
                 .withApiVersion("apps/v1")
                 .withKind("Deployment")
