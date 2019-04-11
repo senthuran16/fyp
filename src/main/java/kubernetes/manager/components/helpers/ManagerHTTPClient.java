@@ -117,8 +117,8 @@ public class ManagerHTTPClient {
             String failedDeploymentsJson = response.body().string();
             Type listType = new TypeToken<ArrayList<DeploymentInfo>>(){}.getType();
             return new Gson().fromJson(failedDeploymentsJson, listType);
-        } catch (Exception e) { // TODO don't catch Exception e if there is any better method
-            // TODO log
+        } catch (Exception e) {
+            // All deployments were failed
             return deployments;
         }
     }
@@ -129,7 +129,11 @@ public class ManagerHTTPClient {
 
         List<WorkerPodMetrics> test = new ArrayList<>();
         for (WorkerPodInfo workerPod : workerPods) {
-            test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
+            if (workerPod.getChildSiddhiAppName().equals("test-app-group-1-1")) {
+                test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
+            } else {
+                test.add(new WorkerPodMetrics(workerPod, 30, System.currentTimeMillis()));
+            }
         }
         return test; // TODO just test. Remove
 

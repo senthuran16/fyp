@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import kubernetes.manager.components.helpers.ChildSiddhiAppsHandler;
 import kubernetes.manager.components.DeploymentManager;
-import kubernetes.manager.exception.KubernetesDeploymentManagerException;
+import kubernetes.manager.exception.KubernetesManagerException;
 import kubernetes.manager.components.MetricsManager;
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 import kubernetes.manager.models.DeploymentInfo;
@@ -19,7 +19,7 @@ import java.util.*;
 /**
  * Handles the deployment and dynamic scaling in a Kubernetes cluster
  */
-public class Operator extends TimerTask {
+public class Operator {
     private static final String SIDDHI_APP_LABEL_KEY = "siddhi-app";
     private static final String MANAGER_METADATA_NAME = "wso2sp-manager";
 
@@ -38,12 +38,7 @@ public class Operator extends TimerTask {
         this.knownWorkerPods = new ArrayList<>(); // No active worker pods at the beginning
     }
 
-    @Override
-    public void run() {
-
-    }
-
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         String userDefinedSiddhiApp =
                 "@App:name('test-app')\n" +
                 "@App:description('Description of the plan')\n" +
@@ -78,7 +73,7 @@ public class Operator extends TimerTask {
             public void run() {
                 try {
                     operator.updateSiddhiAppDeployments();
-                    operator.publishWorkerPodMetrics();
+                    operator.updateWorkerPodMetrics();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
@@ -90,7 +85,7 @@ public class Operator extends TimerTask {
         Timer timer = new Timer();
         timer.schedule(timerTask, 5000, 5000);
 
-        System.out.println("Finished"); // TODO log
+        System.out.println("Started periodic listening"); // TODO log
     }
 
     public void updateManagerService() {
@@ -128,10 +123,6 @@ public class Operator extends TimerTask {
         }
     }
 
-    public void publishWorkerPodMetrics() throws IOException, InterruptedException {
-        MetricsManager.publishWorkerPodMetrics(managerServiceInfo, knownWorkerPods);
-    }
-
     public void updateSiddhiAppDeployments() throws IOException {
         List<DeploymentInfo> siddhiAppDeploymentsToBeUpdated = getDeploymentsToBeUpdated();
 
@@ -142,8 +133,12 @@ public class Operator extends TimerTask {
 //        if (!siddhiAppDeploymentsToBeUpdated.isEmpty()) {
 //            updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
 //        }
-        // Updates as "All the above Deployments were successful" TODO remove
+        // Updates as "All the above Deployments were successful" TODO remove. Just there for testing
         updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
+    }
+
+    public void updateWorkerPodMetrics() throws IOException, InterruptedException {
+        MetricsManager.updateWorkerPodMetrics(managerServiceInfo, knownWorkerPods);
     }
 
     private ManagerServiceInfo getManagerService() {
@@ -177,7 +172,7 @@ public class Operator extends TimerTask {
         if (runningWorkerPods.size() > 0) {
             System.out.println(runningWorkerPods.size() + " new worker pods were detected"); // TODO LOG
             for (WorkerPodInfo newlyDetectedPod : runningWorkerPods) {
-                System.out.println("\t" + newlyDetectedPod.getName());
+                System.out.println("\t" + newlyDetectedPod.getName()); // TODO log
             }
         }
         return runningWorkerPods;
@@ -215,7 +210,7 @@ public class Operator extends TimerTask {
         if (childSiddhiAppInfo != null) {
             return childSiddhiAppInfo;
         }
-        throw new KubernetesDeploymentManagerException(
+        throw new KubernetesManagerException(
                 "Unable to find child Siddhi app for worker pod: " + workerPodInfo);
     }
 }

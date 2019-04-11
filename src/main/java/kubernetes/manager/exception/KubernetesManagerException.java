@@ -21,17 +21,17 @@ package kubernetes.manager.exception;
 /**
  * Represents exceptions related to the Kubernetes Deployment Manager
  */
-public class KubernetesDeploymentManagerException extends RuntimeException {
+public class KubernetesManagerException extends RuntimeException {
 
-    public KubernetesDeploymentManagerException(String message, Throwable cause) {
+    public KubernetesManagerException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public KubernetesDeploymentManagerException(String msg) {
+    public KubernetesManagerException(String msg) {
         super(msg);
     }
 
-    public KubernetesDeploymentManagerException(Throwable cause) {
+    public KubernetesManagerException(Throwable cause) {
         super(cause);
     }
 }

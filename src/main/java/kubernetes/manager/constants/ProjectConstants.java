@@ -9,7 +9,10 @@ public class ProjectConstants {
     public static final String GCLOUD_PROJECT_ZONE = "us-east1-b";
     public static final String GCLOUD_PROJECT_CLUSTER_NAME = "fyp-cluster";
 
-    // COnstants related to the Manager Service
+    // Constants related to Kubernetes objects
+    public static final String DEFAULT_NAMESPACE = "default";
+
+    // Constants related to the Manager Service
     public static final String MANAGER_SERVICE_PORT = "9190";
     public static final String MANAGER_SERVICE_PROTOCOL = "http";
 }

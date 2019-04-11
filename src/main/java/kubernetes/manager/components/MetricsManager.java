@@ -47,44 +47,24 @@ public class MetricsManager {
         }
     }
 
-    public static void deleteMetricDescriptor(String name) throws IOException {
+    // Exists for testing purposes
+    private static void deleteMetricDescriptor(String name) throws IOException {
         final MetricServiceClient client = MetricServiceClient.create();
         MetricDescriptorName metricName = MetricDescriptorName.of(projectId, METRIC_TYPE_PREFIX + name);
         client.deleteMetricDescriptor(metricName);
         System.out.println("Deleted descriptor " + METRIC_TYPE_PREFIX + name);
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws IOException {
         projectId = "savvy-factor-237205";
         projectName = ProjectName.of(projectId);
-//        createMetricDescriptor("foobar");
         deleteMetricDescriptor("test-app-group-1-1");
         deleteMetricDescriptor("test-app-group-2-1");
-
-//        KubernetesClient kubernetesClient = new DefaultKubernetesClient();
-//
-//        while (true) {
-//            List<Pod> pods = kubernetesClient.pods().inNamespace("default").list().getItems();
-//            for (Pod pod : pods) {
-//                if (pod.getMetadata().getLabels() != null && pod.getMetadata().getLabels().get("siddhi-app") != null) {
-//                    publishWorkerPodMetrics(
-//                            new WorkerPodMetrics(
-//                                    new WorkerPodInfo(
-//                                            pod.getMetadata().getName(),
-//                                            pod.getStatus().getPodIP(),
-//                                            pod.getMetadata().getLabels().get("siddhi-app"),
-//                                            pod.getMetadata().getUid()),
-//                                    80,
-//                                    System.currentTimeMillis()));
-//                    Thread.sleep(5000);
-//                }
-//            }
-//        }
     }
 
-    public static void publishWorkerPodMetrics(ManagerServiceInfo managerServiceInfo, List<WorkerPodInfo> workerPods)
+    public static void updateWorkerPodMetrics(ManagerServiceInfo managerServiceInfo, List<WorkerPodInfo> workerPods)
             throws InterruptedException, IOException {
-        projectId = ProjectConstants.GCLOUD_PROJECT_ID; // TODO maybe get this automatically
+        projectId = ProjectConstants.GCLOUD_PROJECT_ID;
         projectName = ProjectName.of(projectId);
         List<WorkerPodMetrics> workerPodMetrics = ManagerHTTPClient.getWorkerPodMetrics(managerServiceInfo, workerPods);
         if (workerPodMetrics != null) {
@@ -95,12 +75,12 @@ public class MetricsManager {
     private static void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {
-            MetricsManager.publishWorkerPodMetrics(workerPodMetrics);
+            MetricsManager.createTimeSeries(workerPodMetrics);
             Thread.sleep(5000);
         }
     }
 
-    private static void publishWorkerPodMetrics(WorkerPodMetrics workerPodMetrics) {
+    private static void createTimeSeries(WorkerPodMetrics workerPodMetrics) {
         metricServiceClient.createTimeSeries(
                 prepareTimeSeriesRequest(
                         workerPodMetrics.getWorkerPodInfo().getUid(),
