@@ -63,6 +63,7 @@ public class ChildSiddhiAppsHandler { // TODO remove this
                 new ChildSiddhiAppInfo(
                         "test-app-group-1-1",
                         hardCodedApp1,
+                        null,
                         1,
                         isChildAppStateful(hardCodedApp1),
                         false));
@@ -70,6 +71,7 @@ public class ChildSiddhiAppsHandler { // TODO remove this
                 new ChildSiddhiAppInfo(
                         "test-app-group-2-1",
                         hardCodedApp2,
+                        null,
                         2,
                         isChildAppStateful(hardCodedApp1),
                         false));

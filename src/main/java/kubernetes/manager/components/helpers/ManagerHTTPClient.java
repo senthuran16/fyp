@@ -59,13 +59,16 @@ public class ManagerHTTPClient {
                 new String(Base64.getEncoder().encode(siddhiApp.getBytes(StandardCharsets.UTF_8)),
                         StandardCharsets.UTF_8);
 
-        RequestBody body = RequestBody.create(JSON, new Gson().toJson(encodedString));
+        RequestBody body = RequestBody.create(JSON, siddhiApp);
         Request request = new Request.Builder()
-                .url("https://35.222.225.231:9543/kubernetes-manager/is-active")
+//                .url("http://35.185.42.143:9190/kubernetes-manager/is-active")
+                .url("http://35.231.75.50:9190/kubernetes-manager/siddhi-app")
+//                .url("http://localhost:9190/kubernetes-manager/siddhi-app")
 //                .url(getBaseUrl(managerServiceInfo) + "deployments")
-//                .post(body)
-                .get()
+                .post(body)
+//                .get()
                 .addHeader("Authorization", Credentials.basic("admin", "admin"))
+                .addHeader("Connection", "keep-alive")
                 .build();
         try (Response response = client.newCall(request).execute()) {
             String failedDeploymentsJson = response.body().string();
@@ -73,6 +76,8 @@ public class ManagerHTTPClient {
             return new Gson().fromJson(failedDeploymentsJson, listType);
         } catch (Exception e) { // TODO don't catch Exception e if there is any better method
             // TODO log
+//            return null;
+            System.out.println(e);
             return null;
         }
 
