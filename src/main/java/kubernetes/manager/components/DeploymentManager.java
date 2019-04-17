@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import kubernetes.manager.components.helpers.ChildSiddhiAppsHandler;
 import kubernetes.manager.components.helpers.SiddhiAppDeployer;
 import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.models.ChildSiddhiAppInfo;
@@ -33,10 +34,13 @@ public class DeploymentManager {
         this.kubernetesClient = kubernetesClient;
     }
 
+    public List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
+        return ChildSiddhiAppsHandler.getChildSiddhiAppInfos(userDefinedSiddhiApp);
+    }
+
     public void createChildSiddhiAppDeployments(List<ChildSiddhiAppInfo> childSiddhiAppInfos) throws IOException {
         for (ChildSiddhiAppInfo childSiddhiAppInfo : childSiddhiAppInfos) {
             createScalableWorkerDeployment(childSiddhiAppInfo, ProjectConstants.DEFAULT_NAMESPACE);
-//            createScalableWorkerDeployment(childSiddhiAppInfo.getName(), ProjectConstants.DEFAULT_NAMESPACE);
         }
     }
 

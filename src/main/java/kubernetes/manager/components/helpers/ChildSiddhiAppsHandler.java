@@ -2,16 +2,14 @@ package kubernetes.manager.components.helpers;
 
 import kubernetes.manager.models.ChildSiddhiAppInfo;
 
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Contains methods for handling child Siddhi app related actions
  */
-public class ChildSiddhiAppsHandler { // TODO remove this
-    public List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
+public class ChildSiddhiAppsHandler { // TODO THIS SHOULD CALL THE API
+    public static List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
         return getHardCodedChildSiddhiApps(); // TODO fix below
 //        SiddhiTopologyCreator siddhiTopologyCreator = new SiddhiTopologyCreatorImpl();
 //        SiddhiTopology siddhiTopology = siddhiTopologyCreator.createTopology(userDefinedSiddhiApp);
@@ -36,7 +34,7 @@ public class ChildSiddhiAppsHandler { // TODO remove this
 //        }
     }
 
-    private List<ChildSiddhiAppInfo> getHardCodedChildSiddhiApps() { // TODO remove when finalized
+    private static List<ChildSiddhiAppInfo> getHardCodedChildSiddhiApps() { // TODO remove when finalized
         List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
         String hardCodedApp1 = "@App:name('test-app-group-1-1') \n" +
 //                "@source(type='kafka', topic.list='test-app.InputStreamOne', group.id='test-app-group-1-0', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
@@ -78,7 +76,7 @@ public class ChildSiddhiAppsHandler { // TODO remove this
         return childSiddhiAppInfos;
     }
 
-    private boolean isChildAppStateful(String childApp) {
+    private static boolean isChildAppStateful(String childApp) {
         return false;
     }
 }

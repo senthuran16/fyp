@@ -23,17 +23,15 @@ public class Operator {
     private static final String SIDDHI_APP_LABEL_KEY = "siddhi-app";
     private static final String MANAGER_METADATA_NAME = "wso2sp-manager";
 
-    KubernetesClient kubernetesClient;
-    ChildSiddhiAppsHandler childSiddhiAppsHandler;
-    DeploymentManager deploymentManager;
+    private KubernetesClient kubernetesClient;
+    private DeploymentManager deploymentManager;
 
+    private ManagerServiceInfo managerServiceInfo;
     private Map<String, ChildSiddhiAppInfo> childSiddhiApps;
-    List<WorkerPodInfo> knownWorkerPods;
-    ManagerServiceInfo managerServiceInfo;
+    private List<WorkerPodInfo> knownWorkerPods;
 
     public Operator(KubernetesClient kubernetesClient) {
         this.kubernetesClient = kubernetesClient;
-        this.childSiddhiAppsHandler = new ChildSiddhiAppsHandler();
         this.deploymentManager = new DeploymentManager(kubernetesClient);
         this.knownWorkerPods = new ArrayList<>(); // No active worker pods at the beginning
     }
@@ -108,9 +106,10 @@ public class Operator {
     }
 
     public void initiateChildSiddhiAppDeployments(String userDefinedSiddhiApp) throws IOException {
-        List<ChildSiddhiAppInfo> childSiddhiAppInfos =
-                childSiddhiAppsHandler.getChildSiddhiAppInfos(userDefinedSiddhiApp);
+        // Create deployments
+        List<ChildSiddhiAppInfo> childSiddhiAppInfos = deploymentManager.getChildSiddhiAppInfos(userDefinedSiddhiApp);
         deploymentManager.createChildSiddhiAppDeployments(childSiddhiAppInfos);
+
         // Store details about child Siddhi apps
         Map<String, ChildSiddhiAppInfo> childSiddhiAppInfoMap = new HashMap<>();
         for (ChildSiddhiAppInfo childSiddhiAppInfo : childSiddhiAppInfos) {

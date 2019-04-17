@@ -2,10 +2,7 @@ package kubernetes.manager.components.helpers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import kubernetes.manager.models.DeploymentInfo;
-import kubernetes.manager.models.ManagerServiceInfo;
-import kubernetes.manager.models.WorkerPodInfo;
-import kubernetes.manager.models.WorkerPodMetrics;
+import kubernetes.manager.models.*;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -166,5 +163,9 @@ public class ManagerHTTPClient {
 //            }
 //            return test; // TODO just test. Remove
 //        }
+    }
+
+    public static List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
+        return null; // TODO implement
     }
 }
