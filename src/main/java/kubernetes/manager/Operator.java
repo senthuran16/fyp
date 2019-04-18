@@ -4,7 +4,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import kubernetes.manager.components.helpers.ChildSiddhiAppsHandler;
 import kubernetes.manager.components.DeploymentManager;
 import kubernetes.manager.exception.KubernetesManagerException;
 import kubernetes.manager.components.MetricsManager;
@@ -126,14 +125,14 @@ public class Operator {
         List<DeploymentInfo> siddhiAppDeploymentsToBeUpdated = getDeploymentsToBeUpdated();
 
         // Get successful deployments and update TODO uncomment
-//        List<DeploymentInfo> failedSiddhiAppDeployments =
-//                deploymentManager.updateSiddhiAppDeployments(managerServiceInfo, siddhiAppDeploymentsToBeUpdated);
-//        siddhiAppDeploymentsToBeUpdated.removeAll(failedSiddhiAppDeployments);
-//        if (!siddhiAppDeploymentsToBeUpdated.isEmpty()) {
-//            updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
-//        }
+        List<DeploymentInfo> failedSiddhiAppDeployments =
+                deploymentManager.updateSiddhiAppDeployments(managerServiceInfo, siddhiAppDeploymentsToBeUpdated);
+        siddhiAppDeploymentsToBeUpdated.removeAll(failedSiddhiAppDeployments);
+        if (!siddhiAppDeploymentsToBeUpdated.isEmpty()) {
+            updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
+        }
         // Updates as "All the above Deployments were successful" TODO remove. Just there for testing
-        updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
+//        updateKnownWorkerPods(siddhiAppDeploymentsToBeUpdated);
     }
 
     public void updateWorkerPodMetrics() throws IOException, InterruptedException {
