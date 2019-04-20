@@ -1,4 +1,4 @@
-package kubernetes.manager.models;
+package kubernetes.manager.framework.models.concrete;
 
 import java.util.Objects;
 
@@ -8,13 +8,13 @@ import java.util.Objects;
 public class WorkerPodInfo {
     private String name;
     private String ip;
-    private String childSiddhiAppName;
+    private String childAppName;
     private String uid;
 
-    public WorkerPodInfo(String name, String ip, String childSiddhiAppName, String uid) {
+    public WorkerPodInfo(String name, String ip, String childAppName, String uid) {
         this.name = name;
         this.ip = ip;
-        this.childSiddhiAppName = childSiddhiAppName;
+        this.childAppName = childAppName;
         this.uid = uid;
     }
 
@@ -26,8 +26,8 @@ public class WorkerPodInfo {
         return ip;
     }
 
-    public String getChildSiddhiAppName() {
-        return childSiddhiAppName;
+    public String getChildAppName() {
+        return childAppName;
     }
 
     public String getUid() { return uid; }
@@ -39,12 +39,12 @@ public class WorkerPodInfo {
         WorkerPodInfo that = (WorkerPodInfo) o;
         return name.equals(that.name) &&
                 ip.equals(that.ip) &&
-                childSiddhiAppName.equals(that.childSiddhiAppName) &&
+                childAppName.equals(that.childAppName) &&
                 uid.equals(that.uid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, ip, childSiddhiAppName, uid);
+        return Objects.hash(name, ip, childAppName, uid);
     }
 }

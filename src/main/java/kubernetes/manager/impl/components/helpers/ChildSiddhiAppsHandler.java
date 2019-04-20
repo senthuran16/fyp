@@ -1,6 +1,7 @@
-package kubernetes.manager.components.helpers;
+package kubernetes.manager.impl.components.helpers;
 
-import kubernetes.manager.models.ChildSiddhiAppInfo;
+import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ChildAppsHandler;
+import kubernetes.manager.impl.models.ChildSiddhiAppInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +9,9 @@ import java.util.List;
 /**
  * Contains methods for handling child Siddhi app related actions
  */
-public class ChildSiddhiAppsHandler { // TODO THIS SHOULD CALL THE API
-    public static List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
+public class ChildSiddhiAppsHandler implements ChildAppsHandler<ChildSiddhiAppInfo> { // TODO THIS SHOULD CALL THE API
+    @Override
+    public List<ChildSiddhiAppInfo> getChildAppInfos(String userDefinedSiddhiApp) {
         return getHardCodedChildSiddhiApps(); // TODO fix below
 //        SiddhiTopologyCreator siddhiTopologyCreator = new SiddhiTopologyCreatorImpl();
 //        SiddhiTopology siddhiTopology = siddhiTopologyCreator.createTopology(userDefinedSiddhiApp);
@@ -59,24 +61,70 @@ public class ChildSiddhiAppsHandler { // TODO THIS SHOULD CALL THE API
                 "insert into LogStreamTwo;";
         childSiddhiAppInfos.add(
                 new ChildSiddhiAppInfo(
-                        "test-app-group-1-1",
+                        "dummy-passthrough-21746-1",
                         hardCodedApp1,
                         null,
                         1,
-                        isChildAppStateful(hardCodedApp1),
+                        false,
                         false));
         childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
                 new ChildSiddhiAppInfo(
-                        "test-app-group-2-1",
+                        "dummy-group-1-1",
+                        hardCodedApp1,
+                        null,
+                        1,
+                        false,
+                        false));
+        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
+                new ChildSiddhiAppInfo(
+                        "dummy-group-2-1",
                         hardCodedApp2,
                         null,
-                        2,
-                        isChildAppStateful(hardCodedApp1),
+                        1,
+                        false,
                         false));
-        return childSiddhiAppInfos;
-    }
 
-    private static boolean isChildAppStateful(String childApp) {
-        return false;
+        return childSiddhiAppInfos;
+
+
+//        List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
+//        String hardCodedApp1 = "@App:name('test-app-group-1-1') \n" +
+////                "@source(type='kafka', topic.list='test-app.InputStreamOne', group.id='test-app-group-1-0', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
+//                "define stream InputStreamOne (name string);\n" +
+//                "@sink(type='log')\n" +
+//                "define stream LogStreamOne(name string);\n" +
+//                "@info(name='query1')\n" +
+//                "\n" +
+//                "from InputStreamOne\n" +
+//                "select *\n" +
+//                "insert into LogStreamOne;";
+//
+//        String hardCodedApp2 = "@App:name('test-app-group-2-1') \n" +
+////                "@source(type='kafka', topic.list='test-app.InputStreamTwo', group.id='test-app-group-2', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
+//                "define stream InputStreamTwo (name string);\n" +
+//                "@sink(type='log')\n" +
+//                "define stream LogStreamTwo(name string);\n" +
+//                "@info(name='query2')\n" +
+//                "\n" +
+//                "from InputStreamTwo\n" +
+//                "select *\n" +
+//                "insert into LogStreamTwo;";
+//        childSiddhiAppInfos.add(
+//                new ChildSiddhiAppInfo(
+//                        "test-app-group-1-1",
+//                        hardCodedApp1,
+//                        null,
+//                        1,
+//                        false,
+//                        false));
+//        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
+//                new ChildSiddhiAppInfo(
+//                        "test-app-group-2-1",
+//                        hardCodedApp2,
+//                        null,
+//                        2,
+//                        false,
+//                        false));
+//        return childSiddhiAppInfos;
     }
 }

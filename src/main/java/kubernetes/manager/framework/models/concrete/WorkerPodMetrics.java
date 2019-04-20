@@ -1,4 +1,4 @@
-package kubernetes.manager.models;
+package kubernetes.manager.framework.models.concrete;
 
 /**
  * Contains information of metrics of a Worker Pod

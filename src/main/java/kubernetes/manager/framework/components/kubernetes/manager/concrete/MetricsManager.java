@@ -1,22 +1,19 @@
-package kubernetes.manager.components;
+package kubernetes.manager.framework.components.kubernetes.manager.concrete;
 
 import com.google.api.Metric;
 import com.google.api.MonitoredResource;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.monitoring.v3.*;
 import com.google.protobuf.util.Timestamps;
-import kubernetes.manager.components.helpers.ManagerHTTPClient;
+import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
 import kubernetes.manager.constants.ProjectConstants;
-import kubernetes.manager.models.ManagerServiceInfo;
-import kubernetes.manager.models.WorkerPodInfo;
-import kubernetes.manager.models.WorkerPodMetrics;
+import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
+import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
+import kubernetes.manager.framework.models.concrete.WorkerPodMetrics;
 import okhttp3.OkHttpClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Contains methods for querying and publishing worker pod metrics for auto scaling purpose
@@ -66,7 +63,8 @@ public class MetricsManager {
             throws InterruptedException, IOException {
         projectId = ProjectConstants.GCLOUD_PROJECT_ID;
         projectName = ProjectName.of(projectId);
-        List<WorkerPodMetrics> workerPodMetrics = ManagerHTTPClient.getWorkerPodMetrics(managerServiceInfo, workerPods);
+        List<WorkerPodMetrics> workerPodMetrics =
+                new SiddhiManagerHTTPClient().getWorkerPodMetrics(managerServiceInfo, workerPods);
         if (workerPodMetrics != null) {
             publishWorkerPodMetrics(workerPodMetrics);
         }
@@ -84,14 +82,14 @@ public class MetricsManager {
         metricServiceClient.createTimeSeries(
                 prepareTimeSeriesRequest(
                         workerPodMetrics.getWorkerPodInfo().getUid(),
-                        workerPodMetrics.getWorkerPodInfo().getChildSiddhiAppName(),
+                        workerPodMetrics.getWorkerPodInfo().getChildAppName(),
                         workerPodMetrics.getValue(),
                         workerPodMetrics.getTime()));
         // TODO remove
-        System.out.println(
-                "[" + workerPodMetrics.getTime() + "] " +
-                        workerPodMetrics.getWorkerPodInfo().getChildSiddhiAppName() + "   " +
-                workerPodMetrics.getWorkerPodInfo().getUid() + " - " + workerPodMetrics.getValue());
+//        System.out.println(
+//                "[" + workerPodMetrics.getTime() + "] " +
+//                        workerPodMetrics.getWorkerPodInfo().getChildAppName() + "   " +
+//                workerPodMetrics.getWorkerPodInfo().getUid() + " - " + workerPodMetrics.getValue());
     }
 
     private static CreateTimeSeriesRequest prepareTimeSeriesRequest(
@@ -99,7 +97,7 @@ public class MetricsManager {
         TimeSeries timeSeries = TimeSeries.newBuilder()
                 .setMetric(prepareMetricDescriptor(childSiddhiAppName))
                 .setResource(prepareMonitoredResourceDescriptor(podId))
-                .addAllPoints(preparePointList(value, time))
+                .addAllPoints(preparePointList(value, time)) // TODO uncomment
                 .build();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
         timeSeriesList.add(timeSeries);

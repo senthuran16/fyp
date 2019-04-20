@@ -1,11 +1,10 @@
-package kubernetes.manager.models;
+package kubernetes.manager.framework.models.generic;
+
+import kubernetes.manager.framework.models.concrete.ResourceRequirement;
 
 import java.util.List;
 
-/**
- * Contains details of a child Siddhi app
- */
-public class ChildSiddhiAppInfo {
+public abstract class ChildAppInfo {
     private String name;
     private String content;
     private List<ResourceRequirement> resourceRequirements;
@@ -13,12 +12,12 @@ public class ChildSiddhiAppInfo {
     private boolean isStateful;
     private boolean isReceiver;
 
-    public ChildSiddhiAppInfo(String name,
-                              String content,
-                              List<ResourceRequirement> resourceRequirements,
-                              int initialParallelism,
-                              boolean isStateful,
-                              boolean isReceiver) {
+    public ChildAppInfo(String name,
+                        String content,
+                        List<ResourceRequirement> resourceRequirements,
+                        int initialParallelism,
+                        boolean isStateful,
+                        boolean isReceiver) {
         this.name = name;
         this.content = content;
         this.resourceRequirements = resourceRequirements;

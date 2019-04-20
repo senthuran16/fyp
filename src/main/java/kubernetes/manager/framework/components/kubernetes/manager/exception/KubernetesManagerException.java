@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package kubernetes.manager.exception;
+package kubernetes.manager.framework.components.kubernetes.manager.exception;
 
 /**
  * Represents exceptions related to the Kubernetes Deployment Manager

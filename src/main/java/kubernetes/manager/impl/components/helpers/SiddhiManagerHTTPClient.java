@@ -1,8 +1,13 @@
-package kubernetes.manager.components.helpers;
+package kubernetes.manager.impl.components.helpers;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import kubernetes.manager.models.*;
+import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ManagerHTTPClientInterface;
+import kubernetes.manager.framework.models.concrete.DeploymentInfo;
+import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
+import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
+import kubernetes.manager.framework.models.concrete.WorkerPodMetrics;
+import kubernetes.manager.impl.models.*;
 import okhttp3.*;
 
 import java.io.IOException;
@@ -13,7 +18,7 @@ import java.util.*;
 /**
  * Communicates with the API that is exposed by the Job Manager, for the usage of Kubernetes Manager
  */
-public class ManagerHTTPClient {
+public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<ChildSiddhiAppInfo> {
     private static OkHttpClient client = new OkHttpClient();
 
     private static String getBaseUrl(ManagerServiceInfo managerServiceInfo) {
@@ -104,10 +109,11 @@ public class ManagerHTTPClient {
 //        }
     }
 
-    public static List<DeploymentInfo> updateDeployments(ManagerServiceInfo managerServiceInfo,
+    @Override
+    public List<DeploymentInfo> updateDeployments(ManagerServiceInfo managerServiceInfo,
                                                          List<DeploymentInfo> deployments) throws IOException {
         final MediaType JSON = MediaType.get("application/json; charset=utf-8");
-
+        // TODO implementation might not have been finalized
         RequestBody body = RequestBody.create(JSON, new Gson().toJson(deployments));
         Request request = new Request.Builder()
 //                .url("http://localhost:9190/kubernetes-manager/worker-pods/deployments")
@@ -125,13 +131,14 @@ public class ManagerHTTPClient {
         }
     }
 
-    public static List<WorkerPodMetrics> getWorkerPodMetrics(ManagerServiceInfo managerServiceInfo,
-                                                             List<WorkerPodInfo> workerPods) throws IOException {
+    @Override
+    public List<WorkerPodMetrics> getWorkerPodMetrics(ManagerServiceInfo managerServiceInfo,
+                                                      List<WorkerPodInfo> workerPods) throws IOException {
         final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
         List<WorkerPodMetrics> test = new ArrayList<>();
         for (WorkerPodInfo workerPod : workerPods) {
-            if (workerPod.getChildSiddhiAppName().equals("test-app-group-1-1")) {
+            if (workerPod.getChildAppName().equals("test-app-group-1-1")) {
                 test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
             } else {
                 test.add(new WorkerPodMetrics(workerPod, 30, System.currentTimeMillis()));
@@ -165,7 +172,8 @@ public class ManagerHTTPClient {
 //        }
     }
 
-    public static List<ChildSiddhiAppInfo> getChildSiddhiAppInfos(String userDefinedSiddhiApp) {
+    @Override
+    public List<ChildSiddhiAppInfo> getChildAppInfos(String userDefinedSiddhiApp) {
         return null; // TODO implement
     }
 }
