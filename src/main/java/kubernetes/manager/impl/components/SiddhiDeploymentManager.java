@@ -30,8 +30,9 @@ public class SiddhiDeploymentManager extends AbstractDeploymentManager<ChildSidd
     }
 
     @Override
-    public List<ChildSiddhiAppInfo> getChildAppInfos(String userDefinedSiddhiApp) {
-        return new ChildSiddhiAppsHandler().getChildAppInfos(userDefinedSiddhiApp);
+    public List<ChildSiddhiAppInfo> getChildAppInfos(ManagerServiceInfo managerServiceInfo,
+                                                     String userDefinedSiddhiApp) {
+        return new ChildSiddhiAppsHandler().getChildAppInfos(managerServiceInfo, userDefinedSiddhiApp);
     }
 
     @Override

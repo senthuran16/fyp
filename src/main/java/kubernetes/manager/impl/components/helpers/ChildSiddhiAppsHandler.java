@@ -1,8 +1,11 @@
 package kubernetes.manager.impl.components.helpers;
 
+import kubernetes.manager.framework.components.kubernetes.manager.exception.KubernetesManagerException;
 import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ChildAppsHandler;
+import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
 import kubernetes.manager.impl.models.ChildSiddhiAppInfo;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,120 +14,12 @@ import java.util.List;
  */
 public class ChildSiddhiAppsHandler implements ChildAppsHandler<ChildSiddhiAppInfo> { // TODO THIS SHOULD CALL THE API
     @Override
-    public List<ChildSiddhiAppInfo> getChildAppInfos(String userDefinedSiddhiApp) {
-        return getHardCodedChildSiddhiApps(); // TODO fix below
-//        SiddhiTopologyCreator siddhiTopologyCreator = new SiddhiTopologyCreatorImpl();
-//        SiddhiTopology siddhiTopology = siddhiTopologyCreator.createTopology(userDefinedSiddhiApp);
-
-//        List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
-//        for (DeployableSiddhiQueryGroup group : queryGroupList) {
-//            Object o = null;
-//        }
-//        for (SiddhiQueryGroup siddhiQueryGroup : siddhiTopology.getQueryGroupList()) {
-//            String siddhiQueryGroupName = siddhiQueryGroup.getName();
-//            // TODO in existing impl, query group is adhered to user config. In mine, each member is a new Query Group
-//            int queryIndex = 0;
-//            for (String query : siddhiQueryGroup.getQueryList()) {
-//                childSiddhiAppInfos.add(
-//                        new ChildSiddhiAppInfo(
-//                                siddhiQueryGroupName + "-" + queryIndex++,
-//                                query,
-//                                siddhiQueryGroup.getParallelism(),
-//                                false, // TODO check isStateful properly
-//                                siddhiQueryGroup.isReceiverQueryGroup()));
-//            }
-//        }
-    }
-
-    private static List<ChildSiddhiAppInfo> getHardCodedChildSiddhiApps() { // TODO remove when finalized
-        List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
-        String hardCodedApp1 = "@App:name('test-app-group-1-1') \n" +
-//                "@source(type='kafka', topic.list='test-app.InputStreamOne', group.id='test-app-group-1-0', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-                "define stream InputStreamOne (name string);\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamOne(name string);\n" +
-                "@info(name='query1')\n" +
-                "\n" +
-                "from InputStreamOne\n" +
-                "select *\n" +
-                "insert into LogStreamOne;";
-
-        String hardCodedApp2 = "@App:name('test-app-group-2-1') \n" +
-//                "@source(type='kafka', topic.list='test-app.InputStreamTwo', group.id='test-app-group-2', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-                "define stream InputStreamTwo (name string);\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamTwo(name string);\n" +
-                "@info(name='query2')\n" +
-                "\n" +
-                "from InputStreamTwo\n" +
-                "select *\n" +
-                "insert into LogStreamTwo;";
-        childSiddhiAppInfos.add(
-                new ChildSiddhiAppInfo(
-                        "dummy-passthrough-21746-1",
-                        hardCodedApp1,
-                        null,
-                        1,
-                        false,
-                        false));
-        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
-                new ChildSiddhiAppInfo(
-                        "dummy-group-1-1",
-                        hardCodedApp1,
-                        null,
-                        1,
-                        false,
-                        false));
-        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
-                new ChildSiddhiAppInfo(
-                        "dummy-group-2-1",
-                        hardCodedApp2,
-                        null,
-                        1,
-                        false,
-                        false));
-
-        return childSiddhiAppInfos;
-
-
-//        List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
-//        String hardCodedApp1 = "@App:name('test-app-group-1-1') \n" +
-////                "@source(type='kafka', topic.list='test-app.InputStreamOne', group.id='test-app-group-1-0', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-//                "define stream InputStreamOne (name string);\n" +
-//                "@sink(type='log')\n" +
-//                "define stream LogStreamOne(name string);\n" +
-//                "@info(name='query1')\n" +
-//                "\n" +
-//                "from InputStreamOne\n" +
-//                "select *\n" +
-//                "insert into LogStreamOne;";
-//
-//        String hardCodedApp2 = "@App:name('test-app-group-2-1') \n" +
-////                "@source(type='kafka', topic.list='test-app.InputStreamTwo', group.id='test-app-group-2', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-//                "define stream InputStreamTwo (name string);\n" +
-//                "@sink(type='log')\n" +
-//                "define stream LogStreamTwo(name string);\n" +
-//                "@info(name='query2')\n" +
-//                "\n" +
-//                "from InputStreamTwo\n" +
-//                "select *\n" +
-//                "insert into LogStreamTwo;";
-//        childSiddhiAppInfos.add(
-//                new ChildSiddhiAppInfo(
-//                        "test-app-group-1-1",
-//                        hardCodedApp1,
-//                        null,
-//                        1,
-//                        false,
-//                        false));
-//        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
-//                new ChildSiddhiAppInfo(
-//                        "test-app-group-2-1",
-//                        hardCodedApp2,
-//                        null,
-//                        2,
-//                        false,
-//                        false));
-//        return childSiddhiAppInfos;
+    public List<ChildSiddhiAppInfo> getChildAppInfos(ManagerServiceInfo managerServiceInfo,
+                                                     String userDefinedSiddhiApp) throws KubernetesManagerException {
+        try {
+            return new SiddhiManagerHTTPClient().getChildAppInfos(managerServiceInfo, userDefinedSiddhiApp);
+        } catch (IOException e) {
+            throw new KubernetesManagerException("Failed to get child Siddhi app info.", e);
+        }
     }
 }

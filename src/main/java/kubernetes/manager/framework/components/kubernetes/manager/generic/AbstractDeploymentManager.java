@@ -22,7 +22,7 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
         this.kubernetesClient = kubernetesClient;
     }
 
-    public abstract List<T> getChildAppInfos(String userDefinedApp);
+    public abstract List<T> getChildAppInfos(ManagerServiceInfo managerServiceInfo, String userDefinedApp);
 
     public void createChildAppDeployments(List<T> childAppInfos) {
         for (T childAppInfo : childAppInfos) {

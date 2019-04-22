@@ -61,7 +61,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
 
     public void initiateChildAppDeployments(String userDefinedApp) {
         // Create deployments
-        List<T> childAppInfos = deploymentManager.getChildAppInfos(userDefinedApp);
+        List<T> childAppInfos = deploymentManager.getChildAppInfos(managerServiceInfo, userDefinedApp);
         deploymentManager.createChildAppDeployments(childAppInfos);
 
         // Store details about child apps

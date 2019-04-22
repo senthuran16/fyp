@@ -16,5 +16,5 @@ public interface ManagerHTTPClientInterface <T extends ChildAppInfo> {
     List<WorkerPodMetrics> getWorkerPodMetrics(ManagerServiceInfo managerServiceInfo, List<WorkerPodInfo> workerPods)
         throws IOException;
 
-    List<T> getChildAppInfos(String userDefinedApp) throws IOException;
+    List<T> getChildAppInfos(ManagerServiceInfo managerServiceInfo, String userDefinedApp) throws IOException;
 }
