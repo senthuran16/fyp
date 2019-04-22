@@ -7,6 +7,7 @@ import kubernetes.manager.constants.ProjectConstants;
 
 import kubernetes.manager.framework.components.kubernetes.manager.exception.KubernetesManagerException;
 import kubernetes.manager.framework.components.kubernetes.manager.concrete.MetricsManager;
+import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ManagerHTTPClientInterface;
 import kubernetes.manager.framework.models.generic.ChildAppInfo;
 import kubernetes.manager.framework.models.concrete.DeploymentInfo;
 import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
@@ -21,15 +22,21 @@ import java.util.Map;
 public abstract class AbstractOperator<T extends ChildAppInfo> {
     private KubernetesClient kubernetesClient;
     private AbstractDeploymentManager<T> deploymentManager;
+    private MetricsManager<T> metricsManager;
+    private ManagerHTTPClientInterface<T> managerClient;
 
     private ManagerServiceInfo managerServiceInfo;
     private Map<String, T> childApps;
     private List<WorkerPodInfo> knownWorkerPods;
 
     public AbstractOperator(KubernetesClient kubernetesClient,
-                            AbstractDeploymentManager<T> deploymentManager) {
+                            AbstractDeploymentManager<T> deploymentManager,
+                            MetricsManager<T> metricsManager,
+                            ManagerHTTPClientInterface<T> managerClient) {
         this.kubernetesClient = kubernetesClient;
         this.deploymentManager = deploymentManager;
+        this.metricsManager = metricsManager;
+        this.managerClient = managerClient;
         this.knownWorkerPods = new ArrayList<>(); // No active worker pods at the beginning
     }
 
@@ -84,7 +91,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
     }
 
     public void updateWorkerPodMetrics() throws IOException, InterruptedException {
-        MetricsManager.updateWorkerPodMetrics(managerServiceInfo, knownWorkerPods);
+        metricsManager.updateWorkerPodMetrics(managerClient, managerServiceInfo, knownWorkerPods);
     }
 
     private ManagerServiceInfo getManagerService() {

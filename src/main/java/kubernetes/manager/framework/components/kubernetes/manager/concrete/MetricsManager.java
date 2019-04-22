@@ -5,7 +5,8 @@ import com.google.api.MonitoredResource;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.monitoring.v3.*;
 import com.google.protobuf.util.Timestamps;
-import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
+import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ManagerHTTPClientInterface;
+import kubernetes.manager.framework.models.generic.ChildAppInfo;
 import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
@@ -18,7 +19,7 @@ import java.util.*;
 /**
  * Contains methods for querying and publishing worker pod metrics for auto scaling purpose
  */
-public class MetricsManager {
+public class MetricsManager<T extends ChildAppInfo> {
     private static final String METRIC_TYPE_PREFIX = "custom.googleapis.com/";
     private static final String METRIC_LABEL_KEY_SIDDHI_APP = "siddhi_app";
     private static final String MONITORED_RESOURCE_TYPE = "gke_container";
@@ -36,7 +37,7 @@ public class MetricsManager {
     private static OkHttpClient okHttpClient = new OkHttpClient();
     private static MetricServiceClient metricServiceClient;
 
-    static {
+    public MetricsManager() {
         try {
             metricServiceClient = MetricServiceClient.create();
         } catch (IOException e) {
@@ -59,26 +60,27 @@ public class MetricsManager {
         deleteMetricDescriptor("test-app-group-2-1");
     }
 
-    public static void updateWorkerPodMetrics(ManagerServiceInfo managerServiceInfo, List<WorkerPodInfo> workerPods)
+    public void updateWorkerPodMetrics(ManagerHTTPClientInterface<T> managerClient,
+                                       ManagerServiceInfo managerServiceInfo,
+                                       List<WorkerPodInfo> workerPods)
             throws InterruptedException, IOException {
         projectId = ProjectConstants.GCLOUD_PROJECT_ID;
         projectName = ProjectName.of(projectId);
-        List<WorkerPodMetrics> workerPodMetrics =
-                new SiddhiManagerHTTPClient().getWorkerPodMetrics(managerServiceInfo, workerPods);
+        List<WorkerPodMetrics> workerPodMetrics = managerClient.getWorkerPodMetrics(managerServiceInfo, workerPods);
         if (workerPodMetrics != null) {
             publishWorkerPodMetrics(workerPodMetrics);
         }
     }
 
-    private static void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
+    private void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {
-            MetricsManager.createTimeSeries(workerPodMetrics);
+            createTimeSeries(workerPodMetrics);
             Thread.sleep(5000);
         }
     }
 
-    private static void createTimeSeries(WorkerPodMetrics workerPodMetrics) {
+    private void createTimeSeries(WorkerPodMetrics workerPodMetrics) {
         metricServiceClient.createTimeSeries(
                 prepareTimeSeriesRequest(
                         workerPodMetrics.getWorkerPodInfo().getUid(),
@@ -92,7 +94,7 @@ public class MetricsManager {
 //                workerPodMetrics.getWorkerPodInfo().getUid() + " - " + workerPodMetrics.getValue());
     }
 
-    private static CreateTimeSeriesRequest prepareTimeSeriesRequest(
+    private CreateTimeSeriesRequest prepareTimeSeriesRequest(
             String podId, String childSiddhiAppName, double value, long time) {
         TimeSeries timeSeries = TimeSeries.newBuilder()
                 .setMetric(prepareMetricDescriptor(childSiddhiAppName))
@@ -108,7 +110,7 @@ public class MetricsManager {
                 .build();
     }
 
-    private static Metric prepareMetricDescriptor(String childSiddhiAppName) {
+    private Metric prepareMetricDescriptor(String childSiddhiAppName) {
         Map<String, String> metricLabels = new HashMap<>();
         metricLabels.put(METRIC_LABEL_KEY_SIDDHI_APP, childSiddhiAppName);
         return Metric.newBuilder()
@@ -117,11 +119,11 @@ public class MetricsManager {
                 .build();
     }
 
-    private static String getMetricsType(String childSiddhiAppName) {
+    private String getMetricsType(String childSiddhiAppName) {
         return METRIC_TYPE_PREFIX + childSiddhiAppName;
     }
 
-    private static MonitoredResource prepareMonitoredResourceDescriptor(String podId) { // TODO remove the parameters
+    private MonitoredResource prepareMonitoredResourceDescriptor(String podId) { // TODO remove the parameters
         Map<String, String> resourceLabels = new HashMap<>();
         resourceLabels.put(RESOURCE_LABEL_KEY_PROJECT_ID, projectId);
         resourceLabels.put(RESOURCE_LABEL_KEY_POD_ID, podId);
@@ -137,13 +139,13 @@ public class MetricsManager {
                 .build();
     }
 
-    private static List<Point> preparePointList(double value, long time) {
+    private List<Point> preparePointList(double value, long time) {
         List<Point> points = new ArrayList<>();
         points.add(prepareDataPoint(value, time));
         return points;
     }
 
-    private static Point prepareDataPoint(double value, long currentTime) {
+    private Point prepareDataPoint(double value, long currentTime) {
         TimeInterval interval = TimeInterval.newBuilder()
                 .setEndTime(Timestamps.fromMillis(currentTime))
                 .build();

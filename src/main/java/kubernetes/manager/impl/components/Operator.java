@@ -2,7 +2,9 @@ package kubernetes.manager.impl.components;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import kubernetes.manager.framework.components.kubernetes.manager.concrete.MetricsManager;
 import kubernetes.manager.framework.components.kubernetes.manager.generic.AbstractOperator;
+import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
 import kubernetes.manager.impl.models.ChildSiddhiAppInfo;
 
 import java.io.IOException;
@@ -13,7 +15,10 @@ import java.util.*;
  */
 public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
     public Operator(KubernetesClient kubernetesClient) {
-        super(kubernetesClient, new SiddhiDeploymentManager(kubernetesClient));
+        super(kubernetesClient,
+                new SiddhiDeploymentManager(kubernetesClient),
+                new MetricsManager<ChildSiddhiAppInfo>(),
+                new SiddhiManagerHTTPClient());
     }
 
     public static void main(String[] args) throws IOException {
