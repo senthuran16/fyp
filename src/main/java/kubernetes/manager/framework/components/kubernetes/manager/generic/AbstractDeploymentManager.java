@@ -25,18 +25,19 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     public abstract List<T> getChildAppInfos(ManagerServiceInfo managerServiceInfo, String userDefinedApp);
 
     public void createChildAppDeployments(List<T> childAppInfos) {
-        for (T childAppInfo : childAppInfos) {
-            createScalableWorkerDeployment(childAppInfo, ProjectConstants.DEFAULT_NAMESPACE);
-        }
+        createScalableWorkerDeployment(childAppInfos.get(0), ProjectConstants.DEFAULT_NAMESPACE);
+//        for (T childAppInfo : childAppInfos) {
+//            createScalableWorkerDeployment(childAppInfo, ProjectConstants.DEFAULT_NAMESPACE);
+//        } // TODO commented for testing
     }
 
     protected void createScalableWorkerDeployment(T childAppInfo, String namespace) {
         System.out.println("Creating scalable worker deployment for child app: " + childAppInfo.getName());
         // Create Service
-        Service service = kubernetesClient.services()
-                .inNamespace(namespace)
-                .create(buildWorkerService(childAppInfo.getName()));
-        System.out.println("\tCreated Kubernetes Service"); // TODO log
+//        Service service = kubernetesClient.services()
+//                .inNamespace(namespace)
+//                .create(buildWorkerService(childAppInfo.getName()));
+//        System.out.println("\tCreated Kubernetes Service"); // TODO log
 
         // Create Deployment
         Deployment deployment = kubernetesClient.apps().deployments()
@@ -49,7 +50,7 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
         // Create Horizontal Pod Autoscaler
         HorizontalPodAutoscaler horizontalPodAutoscaler = kubernetesClient.autoscaling().horizontalPodAutoscalers()
                 .inNamespace(namespace)
-                .create(buildHorizontalPodAutoscaler(childAppInfo.getName(), namespace, 1, 10, "20"));
+                .create(buildHorizontalPodAutoscaler(childAppInfo.getName(), namespace, 1, 100, "1.149568966"));
         System.out.println("\tCreated Horizontal Pod Autoscaler"); //TODO log
 
         // TODO log

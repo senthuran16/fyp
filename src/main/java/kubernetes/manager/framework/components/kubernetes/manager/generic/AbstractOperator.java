@@ -62,7 +62,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
     public void initiateChildAppDeployments(String userDefinedApp) {
         // Create deployments
         List<T> childAppInfos = deploymentManager.getChildAppInfos(managerServiceInfo, userDefinedApp);
-        deploymentManager.createChildAppDeployments(childAppInfos);
+        deploymentManager.createChildAppDeployments(childAppInfos); // TODO commented for testing only
 
         // Store details about child apps
         Map<String, T> childAppInfoMap = new HashMap<>();
@@ -87,6 +87,12 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
 //            updateKnownWorkerPods(appDeploymentsToBeUpdated);
 //        }
         // Updates as "All the above Deployments were successful" TODO remove. Just there for testing
+        System.out.println("Child app deployments have been updated");
+        for (DeploymentInfo deploymentInfo : appDeploymentsToBeUpdated) {
+            System.out.println(
+                    "\tChild app: " + deploymentInfo.getChildAppInfo().getName() +
+                    " in Worker pod: " + deploymentInfo.getWorkerPodInfo().getName());
+        }
         updateKnownWorkerPods(appDeploymentsToBeUpdated);
     }
 

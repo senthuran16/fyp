@@ -5,12 +5,17 @@ import com.google.api.MonitoredResource;
 import com.google.cloud.monitoring.v3.MetricServiceClient;
 import com.google.monitoring.v3.*;
 import com.google.protobuf.util.Timestamps;
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import kubernetes.manager.framework.components.kubernetes.manager.generic.helpers.ManagerHTTPClientInterface;
 import kubernetes.manager.framework.models.generic.ChildAppInfo;
 import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodMetrics;
+import kubernetes.manager.impl.TestSimulator;
+import kubernetes.manager.impl.models.ChildSiddhiAppInfo;
 import okhttp3.OkHttpClient;
 
 import java.io.IOException;
@@ -37,9 +42,12 @@ public class MetricsManager<T extends ChildAppInfo> {
     private static OkHttpClient okHttpClient = new OkHttpClient();
     private static MetricServiceClient metricServiceClient;
 
+    private static KubernetesClient kubernetesClient;
+
     public MetricsManager() {
         try {
             metricServiceClient = MetricServiceClient.create();
+            kubernetesClient = new DefaultKubernetesClient();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -53,12 +61,12 @@ public class MetricsManager<T extends ChildAppInfo> {
         System.out.println("Deleted descriptor " + METRIC_TYPE_PREFIX + name);
     }
 
-    public static void main(String[] args) throws IOException {
-        projectId = "savvy-factor-237205";
-        projectName = ProjectName.of(projectId);
-        deleteMetricDescriptor("test-app-group-1-1");
-        deleteMetricDescriptor("test-app-group-2-1");
-    }
+//    public static void main(String[] args) throws IOException {
+//        projectId = "savvy-factor-237205";
+//        projectName = ProjectName.of(projectId);
+//        deleteMetricDescriptor("test-app-group-1-1");
+//        deleteMetricDescriptor("test-app-group-2-1");
+//    }
 
     public void updateWorkerPodMetrics(ManagerHTTPClientInterface<T> managerClient,
                                        ManagerServiceInfo managerServiceInfo,
@@ -72,12 +80,31 @@ public class MetricsManager<T extends ChildAppInfo> {
         }
     }
 
+
     private void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
+        int currentReplicas = getNumberOfReplicas();
+        double totalLoadAverage = 0;
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {
+
             createTimeSeries(workerPodMetrics);
+
+            totalLoadAverage += workerPodMetrics.getValue();
+
             Thread.sleep(5000);
         }
+        // Total loadAverage for the deployment (this total is balanced across the pods)
+        TestSimulator.appendToFile("sweet-factory-passthrough-2573-1", totalLoadAverage, currentReplicas);
+    }
+
+    private int getNumberOfReplicas() {
+        HorizontalPodAutoscaler hpa =
+                kubernetesClient.autoscaling().horizontalPodAutoscalers().list().getItems().get(0);
+        Integer currentReplicas = hpa.getStatus().getCurrentReplicas();
+        if (currentReplicas == null) {
+            return 0;
+        }
+        return currentReplicas;
     }
 
     private void createTimeSeries(WorkerPodMetrics workerPodMetrics) {

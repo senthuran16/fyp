@@ -7,9 +7,12 @@ import kubernetes.manager.framework.models.concrete.DeploymentInfo;
 import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodMetrics;
+import kubernetes.manager.impl.TestSimulator;
 import kubernetes.manager.impl.models.*;
 import okhttp3.*;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +23,24 @@ import java.util.*;
  */
 public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<ChildSiddhiAppInfo> {
     private static OkHttpClient client = new OkHttpClient();
+    private List<String> records;
+    private int offsetToRead;
+
+    public SiddhiManagerHTTPClient() {
+        offsetToRead = 0;
+        records = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(
+                        "/home/senthuran/Desktop/jmeter-test/system-testing/case3-app-a.csv"))) { //
+            // TODO file name
+            String line;
+            while ((line = br.readLine()) != null) {
+                this.records.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private static String getBaseUrl(ManagerServiceInfo managerServiceInfo) {
         return managerServiceInfo.getProtocol() + "://" + managerServiceInfo.getIp() + ":" +
@@ -131,18 +152,36 @@ public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<Child
         }
     }
 
+    private double getNextExpectedTotalLoadAverage() {
+        System.out.println("Offset: " + offsetToRead + " / " + records.size());
+        return Double.valueOf(records.get(offsetToRead++));
+    }
+
     @Override
     public List<WorkerPodMetrics> getWorkerPodMetrics(ManagerServiceInfo managerServiceInfo,
                                                       List<WorkerPodInfo> workerPods) throws IOException {
         final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
+        double expectedTotalLoadAverage = getNextExpectedTotalLoadAverage();
+        double distributedLoadAverageToEachPod = expectedTotalLoadAverage/(workerPods.size());
+
         List<WorkerPodMetrics> test = new ArrayList<>();
         for (WorkerPodInfo workerPod : workerPods) {
-            if (workerPod.getChildAppName().equals("test-app-group-1-1")) {
-                test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
-            } else {
-                test.add(new WorkerPodMetrics(workerPod, 30, System.currentTimeMillis()));
-            }
+            test.add(
+                    TestSimulator.simulateLoadMetrics(workerPod,
+                            System.currentTimeMillis(),
+                            distributedLoadAverageToEachPod,
+                            distributedLoadAverageToEachPod)
+            );
+
+
+//            if (workerPod.getChildAppName().equals("sweet-factory-group-1-1")) {
+//                test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
+//            } else if (workerPod.getChildAppName().equals("sweet-factory-passthrough-2573-1")) {
+//                test.add(new WorkerPodMetrics(workerPod, 80, System.currentTimeMillis()));
+//            } else {
+//                test.add(new WorkerPodMetrics(workerPod, 20, System.currentTimeMillis()));
+//            }
         }
         return test; // TODO just test. Remove
 
@@ -202,30 +241,46 @@ public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<Child
 
     private static List<ChildSiddhiAppInfo> getHardCodedChildSiddhiApps() { // TODO remove when finalized
         List<ChildSiddhiAppInfo> childSiddhiAppInfos = new ArrayList<>();
-        String hardCodedApp1 = "@App:name('test-app-group-1-1') \n" +
-//                "@source(type='kafka', topic.list='test-app.InputStreamOne', group.id='test-app-group-1-0', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-                "define stream InputStreamOne (name string);\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamOne(name string);\n" +
-                "@info(name='query1')\n" +
+        String hardCodedApp1 = "@App:name('sweet-factory-passthrough-2573-1') \n" +
+                "@Source(type = 'http',\n" +
+                "        receiver.url = \"http://34.74.153.172:9763/passthroughproductionStream\",\n" +
+                "        basic.auth.enabled = \"false\",\n" +
+                "        @map(type=\"json\"))\n" +
+                "define stream passthroughproductionStream(name string, price double);\n" +
                 "\n" +
-                "from InputStreamOne\n" +
+                "define stream productionStream(name string, price double);\n" +
+                "\n" +
+                "from passthroughproductionStream select * insert into productionStream;\n";
+        String hardCodedApp2 = "@App:name('sweet-factory-group-1-1') \n" +
+                "@Source(type = 'http',\n" +
+                "        receiver.url = \"http://34.74.101.217:9763/passthroughproductionStream\",\n" +
+                "        basic.auth.enabled = \"false\",\n" +
+                "        @map(type=\"json\")) \n" +
+                "define stream productionStream(name string, price double);\n" +
+                "@sink(type = 'log')\n" +
+                "define stream cheapProductionsStream(name string, price double);\n" +
+                "@info(name = 'cheapItems')\n" +
+                "\n" +
+                "from productionStream[price < 50]\n" +
                 "select *\n" +
-                "insert into LogStreamOne;";
+                "insert into cheapProductionsStream;\n";
+        String hardCodedApp3 = "@App:name('sweet-factory-group-2-1') \n" +
+                "@Source(type = 'http',\n" +
+                "        receiver.url = \"http://34.74.18.141:9763/passthroughproductionStream\",\n" +
+                "        basic.auth.enabled = \"false\",\n" +
+                "        @map(type=\"json\"))\n" +
+                "define stream productionStream(name string, price double);\n" +
+                "@sink(type = 'log')\n" +
+                "define stream costlyProductionsStream(name string, price double);\n" +
+                "@info(name = 'costlyItems')\n" +
+                "\n" +
+                "from productionStream[price > 100]\n" +
+                "select *\n" +
+                "insert into costlyProductionsStream;\n";
 
-        String hardCodedApp2 = "@App:name('test-app-group-2-1') \n" +
-//                "@source(type='kafka', topic.list='test-app.InputStreamTwo', group.id='test-app-group-2', threading.option='single.thread', bootstrap.servers='localhost:9092', @map(type='xml'))" +
-                "define stream InputStreamTwo (name string);\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamTwo(name string);\n" +
-                "@info(name='query2')\n" +
-                "\n" +
-                "from InputStreamTwo\n" +
-                "select *\n" +
-                "insert into LogStreamTwo;";
         childSiddhiAppInfos.add(
                 new ChildSiddhiAppInfo(
-                        "dummy-passthrough-21746-1",
+                        "sweet-factory-passthrough-2573-1",
                         hardCodedApp1,
                         null,
                         1,
@@ -233,16 +288,16 @@ public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<Child
                         false));
         childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
                 new ChildSiddhiAppInfo(
-                        "dummy-group-1-1",
-                        hardCodedApp1,
-                        null,
-                        1,
-                        false,
-                        false));
-        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
-                new ChildSiddhiAppInfo(
-                        "dummy-group-2-1",
+                        "sweet-factory-group-1-1",
                         hardCodedApp2,
+                        null,
+                        1,
+                        false,
+                        false));
+        childSiddhiAppInfos.add( // TODO TEMPORARY. UNCOMMENT THIS
+                new ChildSiddhiAppInfo(
+                        "sweet-factory-group-2-1",
+                        hardCodedApp3,
                         null,
                         1,
                         false,
