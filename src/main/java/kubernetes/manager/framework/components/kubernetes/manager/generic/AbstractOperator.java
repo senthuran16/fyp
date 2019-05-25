@@ -37,18 +37,18 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         this.deploymentManager = deploymentManager;
         this.metricsManager = metricsManager;
         this.managerClient = managerClient;
-        this.knownWorkerPods = new ArrayList<>(); // No active worker pods at the beginning
+        this.knownWorkerPods = new ArrayList<>(); // No active Worker pods at the beginning
     }
 
     public void updateManagerService() {
         ManagerServiceInfo managerServiceInfo = getManagerService();
         while (managerServiceInfo == null) {
             try {
-                System.out.println("Unable to find Manager Service. Retrying in 5 seconds."); // TODO log
+                System.out.println("Unable to find Manager Service. Retrying in 5 seconds.");
                 Thread.sleep(5000);
                 managerServiceInfo = getManagerService();
             } catch (InterruptedException e) {
-                e.printStackTrace(); // TODO log
+                e.printStackTrace();
             }
         }
         this.managerServiceInfo = managerServiceInfo;
@@ -56,7 +56,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
                 "Updated Manager Service: " +
                         managerServiceInfo.getProtocol() + "://" +
                         managerServiceInfo.getIp() + ":" +
-                        managerServiceInfo.getPort()); // TODO log
+                        managerServiceInfo.getPort());
     }
 
     public void initiateChildAppDeployments(String userDefinedApp) {
@@ -70,24 +70,41 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
             childAppInfoMap.put(childAppInfo.getName(), childAppInfo);
         }
         this.childApps = childAppInfoMap;
-        System.out.println("Created Worker pods for apps:"); // TODO log
+        System.out.println("Created scalable Worker deployments for apps:");
         for (String childAppName : childApps.keySet()) {
-            System.out.println("\t" + childAppName); // TODO log
+            System.out.println("\t" + childAppName);
         }
     }
 
     public void updateAppDeployments() throws IOException {
         List<DeploymentInfo> appDeploymentsToBeUpdated = getDeploymentsToBeUpdated();
 
-        // Get successful deployments and update TODO uncomment
-//        List<DeploymentInfo> failedAppDeployments =
-//                deploymentManager.updateAppDeployments(managerServiceInfo, appDeploymentsToBeUpdated);
-//        appDeploymentsToBeUpdated.removeAll(failedAppDeployments);
-//        if (!appDeploymentsToBeUpdated.isEmpty()) {
-//            updateKnownWorkerPods(appDeploymentsToBeUpdated);
-//        }
-        // Updates as "All the above Deployments were successful" TODO remove. Just there for testing
-        updateKnownWorkerPods(appDeploymentsToBeUpdated);
+        // Get successful deployments and update
+        List<DeploymentInfo> failedAppDeployments =
+                deploymentManager.updateAppDeployments(managerServiceInfo, appDeploymentsToBeUpdated);
+        // Notify about failed child app deployments
+        if (!failedAppDeployments.isEmpty()) {
+            System.out.println("Child app deployments failed in " + failedAppDeployments.size() + " Worker pods. " +
+                    "Will be re-attempted in the next cycle.");
+            for (DeploymentInfo failedDeployment : failedAppDeployments) {
+                System.out.println("\tChild app: " + failedDeployment.getChildAppInfo().getName() +
+                        " in Worker pod: " + failedDeployment.getWorkerPodInfo().getName());
+            }
+        }
+        appDeploymentsToBeUpdated.removeAll(failedAppDeployments); // Only successful deployments will remain
+
+        if (!appDeploymentsToBeUpdated.isEmpty()) {
+            // Notify about successful child app deployments
+            updateKnownWorkerPods(appDeploymentsToBeUpdated);
+            System.out.println(
+                    "Child app deployments succeeded in " + appDeploymentsToBeUpdated.size() + " Worker pods.");
+            for (DeploymentInfo deployment : appDeploymentsToBeUpdated) {
+                System.out.println("\tChild app: " + deployment.getChildAppInfo().getName() +
+                        " in Worker pod: " + deployment.getWorkerPodInfo().getName());
+            }
+        }
+//        // Updates as "All the above Deployments were successful" TODO remove. Just there for testing
+//        updateKnownWorkerPods(appDeploymentsToBeUpdated);
     }
 
     public void updateWorkerPodMetrics() throws IOException, InterruptedException {
@@ -122,10 +139,10 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
     private List<WorkerPodInfo> getLatestPods() {
         List<WorkerPodInfo> runningWorkerPods = getAllRunningWorkerPods();
         runningWorkerPods.removeAll(this.knownWorkerPods);
-        if (runningWorkerPods.size() > 0) {
-            System.out.println(runningWorkerPods.size() + " new worker pods were detected"); // TODO LOG
+        if (!runningWorkerPods.isEmpty()) {
+            System.out.println(runningWorkerPods.size() + " un-updated Worker pods were detected.");
             for (WorkerPodInfo newlyDetectedPod : runningWorkerPods) {
-                System.out.println("\t" + newlyDetectedPod.getName()); // TODO log
+                System.out.println("\t" + newlyDetectedPod.getName());
             }
         }
         return runningWorkerPods;
@@ -163,8 +180,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         if (childAppInfo != null) {
             return childAppInfo;
         }
-        throw new KubernetesManagerException(
-                "Unable to find child Siddhi app for worker pod: " + workerPodInfo);
+        throw new KubernetesManagerException("Unable to find child Siddhi app for worker pod: " + workerPodInfo);
     }
 
 }

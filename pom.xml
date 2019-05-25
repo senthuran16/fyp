@@ -32,6 +32,13 @@
             <version>${google.cloud.monitoring.version}</version>
         </dependency>
 
+        <!--SnakeYAML-->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.21</version>
+        </dependency>
+
         <!--Logger-->
         <dependency>
             <groupId>org.slf4j</groupId>

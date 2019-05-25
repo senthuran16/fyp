@@ -78,6 +78,40 @@ public class MetricsManager<T extends ChildAppInfo> {
         }
     }
 
+    // TODO fix bugs [start]
+    private List<WorkerPodMetrics> overrideWorkerPodMetrics(List<WorkerPodMetrics> workerPodMetrics) {
+        List<WorkerPodMetrics> metrics = new ArrayList<>();
+        for (WorkerPodMetrics workerPodMetric : workerPodMetrics) {
+            double throughput = getThroughputFromFile(workerPodMetric.getWorkerPodInfo().getChildAppName());
+            double loadAverage = generateLoadAverageFromThroughput(throughput);
+            metrics.add(
+                    new WorkerPodMetrics(workerPodMetric.getWorkerPodInfo(), loadAverage, workerPodMetric.getTime()));
+        }
+        return metrics;
+    }
+
+    private double getThroughputFromFile(String childAppName) {
+        return 0;
+    }
+
+    private double generateLoadAverageFromThroughput(double throughput) {
+        if (throughput < 600) {
+            return generateLoadAverage(0.4784545455); // 0 - 599
+        } else if (throughput < 6000) {
+            return generateLoadAverage(0.9396521739); // 600 - 5999
+        } else if (throughput < 60000) {
+            return generateLoadAverage(1.149568966); // 6000 - 59999
+        } else {
+            return generateLoadAverage(1.562173913); // 60000 and above
+        }
+    }
+
+    private double generateLoadAverage(double around) {
+        return 0; // todo implement random
+    }
+    // TODO fix bugs [end]
+
+
     private void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {

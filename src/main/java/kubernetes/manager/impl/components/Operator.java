@@ -45,6 +45,6 @@ public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
         Timer timer = new Timer();
         timer.schedule(timerTask, ProjectConstants.interval, ProjectConstants.interval);
 
-        System.out.println("Started periodic listening"); // TODO log
+        System.out.println("Started periodic listening");
     }
 }

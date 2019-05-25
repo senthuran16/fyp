@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Contains methods for handling child Siddhi app related actions
  */
-public class ChildSiddhiAppsHandler implements ChildAppsHandler<ChildSiddhiAppInfo> { // TODO THIS SHOULD CALL THE API
+public class ChildSiddhiAppsHandler implements ChildAppsHandler<ChildSiddhiAppInfo> {
     @Override
     public List<ChildSiddhiAppInfo> getChildAppInfos(ManagerServiceInfo managerServiceInfo,
                                                      String userDefinedSiddhiApp) throws KubernetesManagerException {

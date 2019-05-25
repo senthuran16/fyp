@@ -31,29 +31,31 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     }
 
     protected void createScalableWorkerDeployment(T childAppInfo, String namespace) {
-        System.out.println("Creating scalable worker deployment for child app: " + childAppInfo.getName());
+        System.out.println("Creating scalable Worker deployment for child app: " + childAppInfo.getName());
         // Create Service
-        Service service = kubernetesClient.services()
-                .inNamespace(namespace)
-                .create(buildWorkerService(childAppInfo.getName()));
-        System.out.println("\tCreated Kubernetes Service"); // TODO log
+//        Service service = kubernetesClient.services()
+//                .inNamespace(namespace)
+//                .create(buildWorkerService(childAppInfo.getName()));
+        System.out.println("\tCreated Kubernetes Service");
 
         // Create Deployment
         Deployment deployment = kubernetesClient.apps().deployments()
                 .inNamespace(namespace)
                 .create(buildWorkerDeployment(childAppInfo));
-        System.out.println("\tCreated Kubernetes Deployment"); // TODO log
-
-        // TODO calculate min,max replicas and targetAverageValue
+        System.out.println("\tCreated Kubernetes Deployment");
 
         // Create Horizontal Pod Autoscaler
         HorizontalPodAutoscaler horizontalPodAutoscaler = kubernetesClient.autoscaling().horizontalPodAutoscalers()
                 .inNamespace(namespace)
-                .create(buildHorizontalPodAutoscaler(childAppInfo.getName(), namespace, 1, 10, "20"));
-        System.out.println("\tCreated Horizontal Pod Autoscaler"); //TODO log
-
-        // TODO log
-        System.out.println("Created scalable worker deployment for child app: " + childAppInfo.getName());
+                .create(
+                        buildHorizontalPodAutoscaler(
+                                childAppInfo.getName(),
+                                namespace,
+                                ProjectConstants.minReplicas,
+                                ProjectConstants.maxReplicas,
+                                ProjectConstants.metricsThreshold));
+        System.out.println("\tCreated Kubernetes Horizontal Pod Autoscaler");
+        System.out.println("Created scalable Worker deployment for child app: " + childAppInfo.getName());
     }
 
     public abstract List<DeploymentInfo> updateAppDeployments(ManagerServiceInfo managerServiceInfo,
@@ -124,9 +126,6 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
                 .endMetadata()
                 // spec
                 .withSpec(buildPodSpec(childAppInfo))
-//                .withNewSpec() TODO remove these
-//                .withContainers(buildWorkerDeploymentContainer(childSiddhiAppName))
-//                .endSpec()
                 .endTemplate()
                 // template [END]
 
@@ -136,7 +135,8 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     }
 
     protected PodSpec buildPodSpec(T childAppInfo) {
-        if (childAppInfo.getResourceRequirements() == null || childAppInfo.getResourceRequirements().isEmpty()) {
+        if (childAppInfo.getResourceRequirements() == null || childAppInfo.getResourceRequirements().isEmpty() ||
+                childAppInfo.getResourceRequirements().get(0) == null) { // TODO look into
             return new PodSpecBuilder()
                     .withContainers(buildWorkerDeploymentContainer(childAppInfo.getName()))
                     .build();
@@ -159,6 +159,7 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
                                                 .withMatchLabels(
                                                         getResourceRequirementLabelSelectors(resourceRequirements))
                                                 .build())
+                                .withTopologyKey("none") // TODO look into
                                 .build())
                 .build();
     }
@@ -166,7 +167,9 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     protected Map<String, String> getResourceRequirementLabelSelectors(List<ResourceRequirement> resourceRequirements) {
         Map<String, String> labelSelectors = new HashMap<>();
         for (ResourceRequirement resourceRequirement : resourceRequirements) {
-            labelSelectors.putAll(resourceRequirement.getLabels());
+            if (resourceRequirement != null) {
+                labelSelectors.putAll(resourceRequirement.getLabels());
+            }
         }
         return labelSelectors;
     }
