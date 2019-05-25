@@ -33,9 +33,9 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     protected void createScalableWorkerDeployment(T childAppInfo, String namespace) {
         System.out.println("Creating scalable Worker deployment for child app: " + childAppInfo.getName());
         // Create Service
-//        Service service = kubernetesClient.services()
-//                .inNamespace(namespace)
-//                .create(buildWorkerService(childAppInfo.getName()));
+        Service service = kubernetesClient.services()
+                .inNamespace(namespace)
+                .create(buildWorkerService(childAppInfo.getName()));
         System.out.println("\tCreated Kubernetes Service");
 
         // Create Deployment
