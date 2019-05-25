@@ -12,8 +12,8 @@ public class ManagerServiceInfo {
 
     public ManagerServiceInfo(String ip) {
         this.ip = ip;
-        this.port = ProjectConstants.MANAGER_SERVICE_PORT;
-        this.protocol = ProjectConstants.MANAGER_SERVICE_PROTOCOL;
+        this.port = ProjectConstants.managerServicePort;
+        this.protocol = ProjectConstants.managerServiceProtocol;
     }
 
     public String getIp() {

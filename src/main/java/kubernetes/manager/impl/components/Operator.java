@@ -2,6 +2,7 @@ package kubernetes.manager.impl.components;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.framework.components.kubernetes.manager.concrete.MetricsManager;
 import kubernetes.manager.framework.components.kubernetes.manager.generic.AbstractOperator;
 import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
@@ -22,34 +23,10 @@ public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
     }
 
     public static void main(String[] args) throws IOException {
-        String userDefinedSiddhiApp =
-                "@App:name('test-app')\n" +
-                "@App:description('Description of the plan')\n" +
-                "\n" +
-                "define stream InputStreamOne (name string);\n" +
-                "define stream InputStreamTwo (name string);\n" +
-                "\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamOne(name string);\n" +
-                "\n" +
-                "@sink(type='log')\n" +
-                "define stream LogStreamTwo(name string);\n" +
-                "\n" +
-                "@info(name='query1')\n" +
-                "@dist(execGroup='group-1')\n" +
-                "from InputStreamOne\n" +
-                "select *\n" +
-                "insert into LogStreamOne;\n" +
-                "\n" +
-                "@info(name='query2')\n" +
-                "@dist(execGroup='group-2' ,parallel ='2')\n" +
-                "from InputStreamTwo\n" +
-                "select *\n" +
-                "insert into LogStreamTwo;";
-
+        ProjectConstants.loadProjectConstants();
         final Operator operator = new Operator(new DefaultKubernetesClient());
         operator.updateManagerService();
-        operator.initiateChildAppDeployments(userDefinedSiddhiApp); // TODO uncomment
+        operator.initiateChildAppDeployments(ProjectConstants.userDefinedSiddhiApp);
 
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -66,7 +43,7 @@ public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
         };
 
         Timer timer = new Timer();
-        timer.schedule(timerTask, 5000, 5000);
+        timer.schedule(timerTask, ProjectConstants.interval, ProjectConstants.interval);
 
         System.out.println("Started periodic listening"); // TODO log
     }

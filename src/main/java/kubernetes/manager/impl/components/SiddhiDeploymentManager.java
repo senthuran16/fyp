@@ -2,6 +2,8 @@ package kubernetes.manager.impl.components;
 
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import kubernetes.manager.constants.ProjectConstants;
+import kubernetes.manager.constants.mapper.WorkerReceiverPort;
 import kubernetes.manager.framework.components.kubernetes.manager.generic.AbstractDeploymentManager;
 import kubernetes.manager.impl.components.helpers.ChildSiddhiAppsHandler;
 import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
@@ -85,6 +87,16 @@ public class SiddhiDeploymentManager extends AbstractDeploymentManager<ChildSidd
                         .withPort(7443)
                         .withProtocol("TCP")
                         .build());
+
+        // Receiver Ports
+        for (WorkerReceiverPort receiverPort : ProjectConstants.receiverPorts) {
+            servicePorts.add(
+                    new ServicePortBuilder()
+                    .withName(receiverPort.name)
+                    .withPort(receiverPort.port)
+                    .withProtocol(receiverPort.protocol)
+                    .build());
+        }
         return servicePorts;
     }
 

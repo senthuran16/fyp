@@ -26,7 +26,7 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
 
     public void createChildAppDeployments(List<T> childAppInfos) {
         for (T childAppInfo : childAppInfos) {
-            createScalableWorkerDeployment(childAppInfo, ProjectConstants.DEFAULT_NAMESPACE);
+            createScalableWorkerDeployment(childAppInfo, ProjectConstants.defaultNamespace);
         }
     }
 

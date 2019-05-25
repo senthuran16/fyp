@@ -56,18 +56,24 @@ public class MetricsManager<T extends ChildAppInfo> {
     public static void main(String[] args) throws IOException {
         projectId = "savvy-factor-237205";
         projectName = ProjectName.of(projectId);
-        deleteMetricDescriptor("test-app-group-1-1");
-        deleteMetricDescriptor("test-app-group-2-1");
+        deleteMetricDescriptor("simple-group-1-1");
     }
 
     public void updateWorkerPodMetrics(ManagerHTTPClientInterface<T> managerClient,
                                        ManagerServiceInfo managerServiceInfo,
                                        List<WorkerPodInfo> workerPods)
             throws InterruptedException, IOException {
-        projectId = ProjectConstants.GCLOUD_PROJECT_ID;
+        projectId = ProjectConstants.gcloudProjectId;
         projectName = ProjectName.of(projectId);
         List<WorkerPodMetrics> workerPodMetrics = managerClient.getWorkerPodMetrics(managerServiceInfo, workerPods);
-        if (workerPodMetrics != null) {
+        if (workerPodMetrics != null && !workerPodMetrics.isEmpty()) {
+            System.out.println("\t===========");
+            System.out.println("\tMETRICS");
+            System.out.println("\t===========");
+            for (WorkerPodMetrics workerPodMetric : workerPodMetrics) {
+                System.out.println(
+                        "\t" + workerPodMetric.getWorkerPodInfo().getName() + ":\t" + workerPodMetric.getValue());
+            }
             publishWorkerPodMetrics(workerPodMetrics);
         }
     }
@@ -76,7 +82,7 @@ public class MetricsManager<T extends ChildAppInfo> {
             throws InterruptedException {
         for (WorkerPodMetrics workerPodMetrics : allWorkerPodMetrics) {
             createTimeSeries(workerPodMetrics);
-            Thread.sleep(5000);
+            Thread.sleep(ProjectConstants.interval);
         }
     }
 
@@ -87,11 +93,6 @@ public class MetricsManager<T extends ChildAppInfo> {
                         workerPodMetrics.getWorkerPodInfo().getChildAppName(),
                         workerPodMetrics.getValue(),
                         workerPodMetrics.getTime()));
-        // TODO remove
-//        System.out.println(
-//                "[" + workerPodMetrics.getTime() + "] " +
-//                        workerPodMetrics.getWorkerPodInfo().getChildAppName() + "   " +
-//                workerPodMetrics.getWorkerPodInfo().getUid() + " - " + workerPodMetrics.getValue());
     }
 
     private CreateTimeSeriesRequest prepareTimeSeriesRequest(
@@ -99,7 +100,7 @@ public class MetricsManager<T extends ChildAppInfo> {
         TimeSeries timeSeries = TimeSeries.newBuilder()
                 .setMetric(prepareMetricDescriptor(childSiddhiAppName))
                 .setResource(prepareMonitoredResourceDescriptor(podId))
-                .addAllPoints(preparePointList(value, time)) // TODO uncomment
+                .addAllPoints(preparePointList(value, time))
                 .build();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
         timeSeriesList.add(timeSeries);
@@ -123,13 +124,13 @@ public class MetricsManager<T extends ChildAppInfo> {
         return METRIC_TYPE_PREFIX + childSiddhiAppName;
     }
 
-    private MonitoredResource prepareMonitoredResourceDescriptor(String podId) { // TODO remove the parameters
+    private MonitoredResource prepareMonitoredResourceDescriptor(String podId) {
         Map<String, String> resourceLabels = new HashMap<>();
         resourceLabels.put(RESOURCE_LABEL_KEY_PROJECT_ID, projectId);
         resourceLabels.put(RESOURCE_LABEL_KEY_POD_ID, podId);
         resourceLabels.put(RESOURCE_LABEL_KEY_CONTAINER_NAME, "");
-        resourceLabels.put(RESOURCE_LABEL_KEY_ZONE, ProjectConstants.GCLOUD_PROJECT_ZONE);
-        resourceLabels.put(RESOURCE_LABEL_KEY_CLUSTER_NAME, ProjectConstants.GCLOUD_PROJECT_CLUSTER_NAME);
+        resourceLabels.put(RESOURCE_LABEL_KEY_ZONE, ProjectConstants.gcloudProjectZone);
+        resourceLabels.put(RESOURCE_LABEL_KEY_CLUSTER_NAME, ProjectConstants.gcloudProjectClusterName);
         resourceLabels.put(RESOURCE_LABEL_KEY_NAMESPACE_ID, "default");
         resourceLabels.put(RESOURCE_LABEL_KEY_INSTANCE_ID, "");
 

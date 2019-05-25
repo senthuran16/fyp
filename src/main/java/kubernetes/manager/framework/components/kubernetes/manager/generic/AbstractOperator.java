@@ -98,7 +98,7 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         List<Service> services = kubernetesClient.services().list().getItems();
         for (Service service : services) {
             if (service.getMetadata() != null && service.getMetadata().getName() != null &&
-                    service.getMetadata().getName().equals(ProjectConstants.MANAGER_METADATA_NAME) &&
+                    service.getMetadata().getName().equals(ProjectConstants.managerMetadataName) &&
                     service.getStatus() != null &&
                     service.getStatus().getLoadBalancer().getIngress() != null &&
                     service.getStatus().getLoadBalancer().getIngress().size() == 1 &&
@@ -138,12 +138,12 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
             // Filter worker pods that are running
             if (pod.getStatus() != null && pod.getStatus().getPhase().equalsIgnoreCase("Running") &&
                     pod.getMetadata() != null && pod.getMetadata().getLabels() != null &&
-                    pod.getMetadata().getLabels().containsKey(ProjectConstants.APP_LABEL_KEY)) {
+                    pod.getMetadata().getLabels().containsKey(ProjectConstants.appLabelKey)) {
                 workerPodInfos.add(
                         new WorkerPodInfo(
                                 pod.getMetadata().getName(),
                                 pod.getStatus().getPodIP(),
-                                pod.getMetadata().getLabels().get(ProjectConstants.APP_LABEL_KEY),
+                                pod.getMetadata().getLabels().get(ProjectConstants.appLabelKey),
                                 pod.getMetadata().getUid()));
             }
         }
