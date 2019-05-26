@@ -46,10 +46,12 @@ public class ProjectConstants {
     // Constants related to Kubernetes objects
     public static String defaultNamespace;
 
-    // Constants related to the Manager Service
+    // Constants related to the Manager Service and Kafka
+    public static String managerMetadataName;
     public static String managerServicePort;
     public static String managerServiceProtocol;
-    public static String managerMetadataName;
+    public static String kafkaMetadataName;
+    public static String kafkaPort;
 
     // Constants related to Worker pods
     public static String appLabelKey;
@@ -98,9 +100,11 @@ public class ProjectConstants {
         gcloudProjectZone = config.project.get("gcloudProjectZone");
         gcloudProjectClusterName = config.project.get("gcloudProjectClusterName");
         defaultNamespace = config.kubernetes.defaultNamespace;
+        managerMetadataName = config.kubernetes.manager.get("managerMetadataName");
         managerServicePort = config.kubernetes.manager.get("managerServicePort");
         managerServiceProtocol = config.kubernetes.manager.get("managerServiceProtocol");
-        managerMetadataName = config.kubernetes.manager.get("managerMetadataName");
+        kafkaMetadataName = config.kubernetes.manager.get("kafkaMetadataName");
+        kafkaPort = config.kubernetes.manager.get("kafkaPort");
         appLabelKey = config.kubernetes.worker.appLabelKey;
         receiverPorts = config.kubernetes.worker.receiverPorts;
         minReplicas = Integer.valueOf(config.kubernetes.qos.get("minReplicas"));
