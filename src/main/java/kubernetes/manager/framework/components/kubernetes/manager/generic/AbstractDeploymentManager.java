@@ -24,6 +24,8 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
 
     public abstract List<T> getChildAppInfos(ManagerServiceInfo managerServiceInfo, String userDefinedApp);
 
+    public abstract T getNextChildAppInfo(T childAppInfo);
+
     public void createChildAppDeployments(List<T> childAppInfos) {
         for (T childAppInfo : childAppInfos) {
             createScalableWorkerDeployment(childAppInfo, ProjectConstants.defaultNamespace);

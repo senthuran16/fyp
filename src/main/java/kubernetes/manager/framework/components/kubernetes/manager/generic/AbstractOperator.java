@@ -288,10 +288,14 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
 
     private T getChildAppInfo(WorkerPodInfo workerPodInfo) {
         T childAppInfo = childApps.get(workerPodInfo.getChildAppName());
+
+        // Get and update next deployable child app
+        childAppInfo = deploymentManager.getNextChildAppInfo(childAppInfo);
+        childApps.put(workerPodInfo.getChildAppName(), childAppInfo);
+
         if (childAppInfo != null) {
             return childAppInfo;
         }
         throw new KubernetesManagerException("Unable to find child Siddhi app for worker pod: " + workerPodInfo);
     }
-
 }

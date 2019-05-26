@@ -86,27 +86,27 @@ public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<Child
     @Override
     public List<ChildSiddhiAppInfo> getChildAppInfos(ManagerServiceInfo managerServiceInfo,
                                                      String userDefinedSiddhiApp) throws IOException {
-        return getHardCodedChildSiddhiApps();
-//        RequestBody body = new FormBody.Builder()
-//                .add("userDefinedSiddhiApp", userDefinedSiddhiApp)
-//                .add("kafkaIp", managerServiceInfo.getKafkaIp())
-//                .add("kafkaPort", managerServiceInfo.getKafkaPort())
-//                .build();
-//        Request request = new Request.Builder()
-//                .url(getBaseUrl(managerServiceInfo) + "siddhi-app")
-//                .post(body)
-//                .addHeader("Authorization", Credentials.basic("admin", "admin"))
-//                .build();
-//        try (Response response = client.newCall(request).execute()) {
-//            if (response.body() != null) {
-//                String childSiddhiAppsJson = response.body().string();
-//                Type listType = new TypeToken<ArrayList<ChildSiddhiAppInfo>>(){}.getType();
-//                return new Gson().fromJson(childSiddhiAppsJson, listType);
-//            }
-//            return Collections.emptyList();
-//        } catch (Exception e) {
-//            return Collections.emptyList();
-//        }
+//        return getHardCodedChildSiddhiApps();
+        RequestBody body = new FormBody.Builder()
+                .add("userDefinedSiddhiApp", userDefinedSiddhiApp)
+                .add("kafkaIp", managerServiceInfo.getKafkaIp())
+                .add("kafkaPort", managerServiceInfo.getKafkaPort())
+                .build();
+        Request request = new Request.Builder()
+                .url(getBaseUrl(managerServiceInfo) + "siddhi-app")
+                .post(body)
+                .addHeader("Authorization", Credentials.basic("admin", "admin"))
+                .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() != null) {
+                String childSiddhiAppsJson = response.body().string();
+                Type listType = new TypeToken<ArrayList<ChildSiddhiAppInfo>>(){}.getType();
+                return new Gson().fromJson(childSiddhiAppsJson, listType);
+            }
+            return Collections.emptyList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     private static List<ChildSiddhiAppInfo> getHardCodedChildSiddhiApps() { // TODO remove when finalized
@@ -355,14 +355,14 @@ public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<Child
                         1,
                         false,
                         false));
-        childSiddhiAppInfos.add(
-                new ChildSiddhiAppInfo(
-                        "simple-group-1-1-pod2",
-                        hardCodedApp3,
-                        null,
-                        1,
-                        false,
-                        false));
+//        childSiddhiAppInfos.add(
+//                new ChildSiddhiAppInfo(
+//                        "simple-group-1-1-pod2",
+//                        hardCodedApp3,
+//                        null,
+//                        1,
+//                        false,
+//                        false));
 
         return childSiddhiAppInfos;
     }

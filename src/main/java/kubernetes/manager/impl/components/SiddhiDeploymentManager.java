@@ -38,6 +38,11 @@ public class SiddhiDeploymentManager extends AbstractDeploymentManager<ChildSidd
     }
 
     @Override
+    public ChildSiddhiAppInfo getNextChildAppInfo(ChildSiddhiAppInfo childAppInfo) {
+        return new ChildSiddhiAppsHandler().getNextChildAppInfo(childAppInfo);
+    }
+
+    @Override
     public List<DeploymentInfo> updateAppDeployments(ManagerServiceInfo managerServiceInfo,
                                                      List<DeploymentInfo> siddhiAppDeployments)
             throws IOException {
