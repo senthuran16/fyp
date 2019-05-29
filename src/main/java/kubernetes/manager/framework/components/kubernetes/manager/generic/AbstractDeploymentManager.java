@@ -142,11 +142,6 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
             // No resource requirements - No pod affinity
             return new PodSpecBuilder()
                     .withContainers(buildWorkerDeploymentContainer(childAppInfo.getName()))
-                    .withVolumes(new VolumeBuilder().withName("sp-worker-conf")
-                            .withNewConfigMap()
-                            .withName("sp-worker-conf")
-                            .endConfigMap()
-                    .build()) // TODO look into
                     .build();
         } else {
             // Build with pod affinity
@@ -155,11 +150,6 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
                     .withPodAffinity(buildPodAffinity(childAppInfo.getResourceRequirements()))
                     .endAffinity()
                     .withContainers(buildWorkerDeploymentContainer(childAppInfo.getName()))
-                    .withVolumes(new VolumeBuilder().withName("sp-worker-conf")
-                            .withNewConfigMap()
-                            .withName("sp-worker-conf")
-                            .endConfigMap()
-                            .build()) // TODO look into
                     .build();
         }
     }
