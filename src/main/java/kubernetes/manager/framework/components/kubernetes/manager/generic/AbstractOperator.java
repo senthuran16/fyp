@@ -160,26 +160,29 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
     }
 
     private void logChildAppInfos(List<T> childAppInfos) {
+        System.out.println(childAppInfos.size() + " child apps were derived.");
         System.out.println("==================");
         System.out.println("  CHILD APPS:");
         System.out.println("==================");
         for (T childAppInfo : childAppInfos) {
             System.out.println("------------------");
-            System.out.println("Child app name: " + childAppInfo.getName());
+            System.out.println("# Child app name: " + childAppInfo.getName());
             System.out.println("------------------");
             System.out.println("");
 
             if (childAppInfo.getResourceRequirements() != null && !childAppInfo.getResourceRequirements().isEmpty()) {
-                System.out.println("Resource Requirements: ");
+                System.out.println("* Resource Requirements: ");
                 for (ResourceRequirement resourceRequirement : childAppInfo.getResourceRequirements()) {
                     for (Map.Entry<String, String> label : resourceRequirement.getLabels().entrySet()) {
-                        System.out.println("\t" + label.getKey() + ": " + label.getValue());
+                        System.out.println("\t- " + label.getKey() + ": " + label.getValue());
                     }
                 }
                 System.out.println("");
             }
             System.out.println(childAppInfo.getContent());
         }
+        System.out.println("");
+        System.out.println("==================");
         System.out.println("");
     }
 
