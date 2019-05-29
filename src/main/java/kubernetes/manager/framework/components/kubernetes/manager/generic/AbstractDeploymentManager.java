@@ -138,11 +138,13 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
 
     protected PodSpec buildPodSpec(T childAppInfo) {
         if (childAppInfo.getResourceRequirements() == null || childAppInfo.getResourceRequirements().isEmpty() ||
-                childAppInfo.getResourceRequirements().get(0) == null) { // TODO look into
+                childAppInfo.getResourceRequirements().get(0) == null) {
+            // No resource requirements - No pod affinity
             return new PodSpecBuilder()
                     .withContainers(buildWorkerDeploymentContainer(childAppInfo.getName()))
                     .build();
         } else {
+            // Build with pod affinity
             return new PodSpecBuilder()
                     .withNewAffinity()
                     .withPodAffinity(buildPodAffinity(childAppInfo.getResourceRequirements()))
@@ -161,7 +163,7 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
                                                 .withMatchLabels(
                                                         getResourceRequirementLabelSelectors(resourceRequirements))
                                                 .build())
-                                .withTopologyKey("none") // TODO look into
+                                .withTopologyKey("kubernetes.io/hostname")
                                 .build())
                 .build();
     }
