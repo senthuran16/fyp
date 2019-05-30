@@ -17,6 +17,10 @@ import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Coordinates operations of the complete lifecycle of the DSPS in Kubernetes environment
+ * @param <T> Type of the streaming application of your Stream Processor
+ */
 public abstract class AbstractOperator<T extends ChildAppInfo> {
     private KubernetesClient kubernetesClient;
     private AbstractDeploymentManager<T> deploymentManager;
@@ -38,6 +42,9 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         this.knownWorkerPods = new ArrayList<>(); // No active Worker pods at the beginning
     }
 
+    /**
+     * Finds and updates the manager service from Kubernetes cluster
+     */
     public void updateManagerService() {
         ManagerServiceInfo managerServiceInfo = getManagerService();
         while (managerServiceInfo == null) {
@@ -59,8 +66,11 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
                         ". Kafka Service: " + managerServiceInfo.getKafkaIp() + ":" + managerServiceInfo.getKafkaPort());
     }
 
+    /**
+     * Initially creates child app deployments in the Kubernetes cluster
+     * @param userDefinedApp
+     */
     public void initiateChildAppDeployments(String userDefinedApp) {
-        // Create deployments
         List<T> childAppInfos = deploymentManager.getChildAppInfos(managerServiceInfo, userDefinedApp);
         logChildAppInfos(childAppInfos);
         deploymentManager.createChildAppDeployments(childAppInfos);
@@ -78,6 +88,10 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         displayWorkerServiceIps(childAppInfoMap.keySet());
     }
 
+    /**
+     * Gets called periodically, and updates deployments, that are un-updated so far
+     * @throws IOException
+     */
     public void updateAppDeployments() throws IOException {
         List<DeploymentInfo> appDeploymentsToBeUpdated = getDeploymentsToBeUpdated();
 
@@ -107,6 +121,11 @@ public abstract class AbstractOperator<T extends ChildAppInfo> {
         }
     }
 
+    /**
+     * Updates metrics of known Worker pods
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void updateWorkerPodMetrics() throws IOException, InterruptedException {
         metricsManager.updateWorkerPodMetrics(managerClient, managerServiceInfo, knownWorkerPods);
     }

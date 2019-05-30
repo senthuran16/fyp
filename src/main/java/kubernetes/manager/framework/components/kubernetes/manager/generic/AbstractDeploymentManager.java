@@ -15,6 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handles creation of Workers and deployment of streaming applications in Kubernetes environment
+ * @param <T> Type of the streaming application of your Stream Processor
+ */
 public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
     protected KubernetesClient kubernetesClient;
 
@@ -22,10 +26,27 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
         this.kubernetesClient = kubernetesClient;
     }
 
+    /**
+     * Gets child applications for the deployment
+     * @param managerServiceInfo
+     * @param userDefinedApp
+     * @return
+     */
     public abstract List<T> getChildAppInfos(ManagerServiceInfo managerServiceInfo, String userDefinedApp);
 
+    /**
+     * Gets the next child application that is suitable for deployment.
+     * This should be used in cases like different consumer groups when using Kafka.
+     * Return the argument itself, if this is not applicable.
+     * @param childAppInfo
+     * @return
+     */
     public abstract T getNextChildAppInfo(T childAppInfo);
 
+    /**
+     * Creates a Service, Deployment and HPA in Kubernetes, for all given child applications
+     * @param childAppInfos
+     */
     public void createChildAppDeployments(List<T> childAppInfos) {
         for (T childAppInfo : childAppInfos) {
             createScalableWorkerDeployment(childAppInfo, ProjectConstants.defaultNamespace);
@@ -60,9 +81,22 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
         System.out.println("Created scalable Worker deployment for child app: " + childAppInfo.getName());
     }
 
+    /**
+     * Updates deployments of child applications in Worker pods.
+     * Worker pod details are carried within the appDeployments itself
+     * @param managerServiceInfo
+     * @param appDeployments
+     * @return
+     * @throws IOException
+     */
     public abstract List<DeploymentInfo> updateAppDeployments(ManagerServiceInfo managerServiceInfo,
                                                               List<DeploymentInfo> appDeployments) throws IOException;
 
+    /**
+     * Constructs labels for Kubernetes artifacts related to Workers
+     * @param childAppName
+     * @return
+     */
     protected abstract Map<String, String> constructLabels(String childAppName);
 
     protected Service buildWorkerService(String childAppName) {
@@ -178,6 +212,11 @@ public abstract class AbstractDeploymentManager<T extends ChildAppInfo> {
         return labelSelectors;
     }
 
+    /**
+     * Creates a worker container of your Stream Processor
+     * @param childAppName
+     * @return
+     */
     protected abstract Container buildWorkerDeploymentContainer(String childAppName);
 
     protected HorizontalPodAutoscaler buildHorizontalPodAutoscaler(

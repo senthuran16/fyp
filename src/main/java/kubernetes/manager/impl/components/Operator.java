@@ -8,11 +8,11 @@ import kubernetes.manager.framework.components.kubernetes.manager.generic.Abstra
 import kubernetes.manager.impl.components.helpers.SiddhiManagerHTTPClient;
 import kubernetes.manager.impl.models.ChildSiddhiAppInfo;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
- * Handles the deployment and dynamic scaling in a Kubernetes cluster
+ * Handles the deployment and dynamic scaling related to WSO2 SP, in Kubernetes cluster
  */
 public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
     public Operator(KubernetesClient kubernetesClient) {
@@ -26,7 +26,7 @@ public class Operator extends AbstractOperator<ChildSiddhiAppInfo> {
         ProjectConstants.loadProjectConstants();
         final Operator operator = new Operator(new DefaultKubernetesClient());
         operator.updateManagerService();
-        operator.initiateChildAppDeployments(ProjectConstants.userDefinedSiddhiApp);
+        operator.initiateChildAppDeployments(ProjectConstants.userDefinedApp);
 
         TimerTask timerTask = new TimerTask() {
             @Override

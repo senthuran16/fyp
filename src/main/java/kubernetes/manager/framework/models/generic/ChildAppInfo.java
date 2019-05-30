@@ -5,6 +5,10 @@ import kubernetes.manager.framework.models.concrete.ResourceRequirement;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Contains information about a child streaming app.
+ * Should be extended by the developer, to provide concreteness
+ */
 public abstract class ChildAppInfo {
     private String name;
     private String content;

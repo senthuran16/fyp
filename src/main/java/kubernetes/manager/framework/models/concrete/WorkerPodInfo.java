@@ -3,7 +3,7 @@ package kubernetes.manager.framework.models.concrete;
 import java.util.Objects;
 
 /**
- * Contains details of a Worker Pod, which is contained by a Deployment, in order to run a child Siddhi app
+ * Contains details of a Worker Pod, which is contained by a Deployment, in order to run a child app
  */
 public class WorkerPodInfo {
     private String name;

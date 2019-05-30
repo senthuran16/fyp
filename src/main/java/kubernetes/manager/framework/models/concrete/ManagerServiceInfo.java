@@ -1,7 +1,7 @@
 package kubernetes.manager.framework.models.concrete;
 
 /**
- * Contains information about the Manager Service, which is exposed as a Load Balancer
+ * Contains information about the Manager Service
  */
 public class ManagerServiceInfo {
     private String ip;

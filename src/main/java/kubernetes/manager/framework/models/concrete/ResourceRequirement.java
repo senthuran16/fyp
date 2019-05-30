@@ -3,7 +3,7 @@ package kubernetes.manager.framework.models.concrete;
 import java.util.Map;
 
 /**
- * Contains information about a resource requirement of a child Siddhi app
+ * Contains information about a resource requirement of a child app
  */
 public class ResourceRequirement {
     Map<String, String> labels;

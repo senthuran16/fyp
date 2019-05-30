@@ -9,11 +9,10 @@ import okhttp3.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * Communicates with the API that is exposed by the Job Manager, for the usage of Kubernetes Manager
+ * Communicates with the API that is exposed by WSO2 SP Job Manager, for the usage of Kubernetes Manager
  */
 public class SiddhiManagerHTTPClient implements ManagerHTTPClientInterface<ChildSiddhiAppInfo> {
     private static OkHttpClient client = new OkHttpClient();

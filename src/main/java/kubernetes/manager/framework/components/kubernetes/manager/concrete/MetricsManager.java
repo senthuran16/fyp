@@ -11,7 +11,6 @@ import kubernetes.manager.constants.ProjectConstants;
 import kubernetes.manager.framework.models.concrete.ManagerServiceInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodInfo;
 import kubernetes.manager.framework.models.concrete.WorkerPodMetrics;
-import okhttp3.OkHttpClient;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,7 +33,6 @@ public class MetricsManager<T extends ChildAppInfo> {
 
     private static String projectId;
     private static ProjectName projectName;
-    private static OkHttpClient okHttpClient = new OkHttpClient();
     private static MetricServiceClient metricServiceClient;
 
     public MetricsManager() {
@@ -45,7 +43,11 @@ public class MetricsManager<T extends ChildAppInfo> {
         }
     }
 
-    // Exists for testing purposes
+    /**
+     * Deletes a metric descriptor. Only useful when testing
+     * @param name
+     * @throws IOException
+     */
     private static void deleteMetricDescriptor(String name) throws IOException {
         final MetricServiceClient client = MetricServiceClient.create();
         MetricDescriptorName metricName = MetricDescriptorName.of(projectId, METRIC_TYPE_PREFIX + name);
@@ -59,6 +61,14 @@ public class MetricsManager<T extends ChildAppInfo> {
         deleteMetricDescriptor("simple-group-1-1");
     }
 
+    /**
+     * Updates metrics of all the given worker pods
+     * @param managerClient
+     * @param managerServiceInfo
+     * @param workerPods
+     * @throws InterruptedException
+     * @throws IOException
+     */
     public void updateWorkerPodMetrics(ManagerHTTPClientInterface<T> managerClient,
                                        ManagerServiceInfo managerServiceInfo,
                                        List<WorkerPodInfo> workerPods)
@@ -77,40 +87,6 @@ public class MetricsManager<T extends ChildAppInfo> {
             publishWorkerPodMetrics(workerPodMetrics);
         }
     }
-
-    // TODO fix bugs [start]
-    private List<WorkerPodMetrics> overrideWorkerPodMetrics(List<WorkerPodMetrics> workerPodMetrics) {
-        List<WorkerPodMetrics> metrics = new ArrayList<>();
-        for (WorkerPodMetrics workerPodMetric : workerPodMetrics) {
-            double throughput = getThroughputFromFile(workerPodMetric.getWorkerPodInfo().getChildAppName());
-            double loadAverage = generateLoadAverageFromThroughput(throughput);
-            metrics.add(
-                    new WorkerPodMetrics(workerPodMetric.getWorkerPodInfo(), loadAverage, workerPodMetric.getTime()));
-        }
-        return metrics;
-    }
-
-    private double getThroughputFromFile(String childAppName) {
-        return 0;
-    }
-
-    private double generateLoadAverageFromThroughput(double throughput) {
-        if (throughput < 600) {
-            return generateLoadAverage(0.4784545455); // 0 - 599
-        } else if (throughput < 6000) {
-            return generateLoadAverage(0.9396521739); // 600 - 5999
-        } else if (throughput < 60000) {
-            return generateLoadAverage(1.149568966); // 6000 - 59999
-        } else {
-            return generateLoadAverage(1.562173913); // 60000 and above
-        }
-    }
-
-    private double generateLoadAverage(double around) {
-        return 0; // todo implement random
-    }
-    // TODO fix bugs [end]
-
 
     private void publishWorkerPodMetrics(List<WorkerPodMetrics> allWorkerPodMetrics)
             throws InterruptedException {
